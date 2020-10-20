@@ -1,1 +1,1 @@
-export const deadIntervalSec = 60; // in seconds
+export const deadIntervalSec = 600; // in seconds

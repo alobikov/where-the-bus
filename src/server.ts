@@ -1,39 +1,53 @@
-import { IAllRoutes } from "./types/types";
+import { IBusRoutes } from "./types/types";
 import http from "http";
 import socketIO from "socket.io";
-import AllRoutes from "./all_routes";
-import AllTrips from "./all_trips";
+import BusRoutes from "./bus_routes";
+import Trips from "./trips";
 import apiStops from "./services/stops_lt";
 import Interval from "./interval";
+import { Socket } from "dgram";
 
 const port: number = 9001;
 var selectedId;
-const allRoutes = new AllRoutes();
-const allTrips = new AllTrips();
-const state = {
-  bounds: [
-    [0, 0],
-    [0, 0],
-  ],
-  selected: { tbus: [], bus: [] },
-};
+const busRoutes = new BusRoutes();
+const trips = new Trips();
 
-// init Routes and Trips collections
+interface IStateRecord {
+  bounds?: [[number, number], [number, number]];
+  selected?: { tbus: string[]; bus: string[] };
+}
+const state: Record<string, IStateRecord> = {};
+
+// init Routes and Trips collections; called once
 apiStops.fetchAll().then((data) => {
-  allRoutes.set(data);
-  allTrips.set(data);
-  console.log("selectedID", selectedId);
-  console.log("Amount of active trips on 'stops.lt':", allTrips.length);
-  state.selected = allRoutes.allTypes as any;
+  busRoutes.set(data);
+  trips.set(data);
+  // state.selected = busRoutes.allTypes as any;
 });
-
-const updateTrips = () => {
-  apiStops.fetchAll().then((data) => {
-    allTrips.set(data);
-    // console.log("Active trips:", allTrips.length);
-  });
+// fetch from stops.lt and parse data to internal collection; called on interval
+const fetchAndUpdateTrips = () => {
+  apiStops.fetchAll().then((data) => trips.set(data));
 };
-
+// emit trips bounded to client window and only for routes selected by client
+const emitReducedTrips = (socket) => {
+  // console.log("in emitReduced", state[socket.id]?.bounds);
+  const boundedTrips = trips.getBounded(state[socket.id].bounds);
+  const selectedTrips = trips.getSelected(
+    boundedTrips,
+    state[socket.id].selected
+  );
+  socket.emit(
+    "new-trips",
+    `[${selectedTrips.map((trip) => trip.toJson()).join(",")}]`
+  );
+};
+// report each minute
+setInterval(() => {
+  console.log("Records in trips:", trips.length, trips.getDead().length);
+  const deadList = trips.removeOutdated();
+  console.log(deadList);
+}, 60000);
+6;
 const server = http.createServer((req, res) => {
   switch (req.url) {
     case "/": {
@@ -45,7 +59,7 @@ const server = http.createServer((req, res) => {
       console.log("GET '/rotes' request");
       res.setHeader("Access-Control-Allow-Origin", "*");
       res.setHeader("Content-Type", "application/json");
-      res.write(allRoutes.toJson());
+      res.write(busRoutes.toJson());
       res.end();
       return;
     }
@@ -53,7 +67,7 @@ const server = http.createServer((req, res) => {
       console.log("GET '/trips' request");
       res.setHeader("Access-Control-Allow-Origin", "*");
       res.setHeader("Content-Type", "application/json");
-      res.write(allTrips.toJson());
+      res.write(trips.toJson());
       res.end();
       return;
     }
@@ -73,22 +87,15 @@ const server = http.createServer((req, res) => {
 
 const io: socketIO.Server = socketIO(server);
 
-io.on("connection", (socket) => {
-  console.log("*** Socket.io user connected ***");
+io.on("connect", (socket) => {
+  console.log("*** Socket.io user connected ***", socket.id);
   socket.emit("bounds-requested");
 
   //! ******************** POLLING ***********************
   const pollDataProvider = new Interval(() => {
     // set task(s) for the interval
-    updateTrips();
-    const boundedTrips = allTrips.getBounded(state.bounds);
-    const trips = boundedTrips.filter(
-      (trip) =>
-        (state.selected.tbus.includes(trip.title) && trip.type === "tbus") ||
-        (state.selected.bus.includes(trip.title) && trip.type === "bus")
-    );
-    // console.log(`${trips.length} boudned trips:`, trips);
-    io.emit("new-trips", `[${trips.map((trip) => trip.toJson()).join(",")}]`);
+    fetchAndUpdateTrips();
+    emitReducedTrips(socket);
   }, 5000);
   pollDataProvider.start();
 
@@ -99,16 +106,29 @@ io.on("connection", (socket) => {
   //!=====================================================
 
   socket.on("my-bounds", (bounds) => {
-    console.log("my-bounds", bounds);
-    state.bounds = [
-      [bounds._sw.lng, bounds._sw.lat],
-      [bounds._ne.lng, bounds._ne.lat],
-    ];
+    // console.log(`${socket.id} my-bounds`, bounds);
+    state[socket.id] = {
+      ...state[socket.id],
+      bounds: [
+        [bounds._sw.lng, bounds._sw.lat],
+        [bounds._ne.lng, bounds._ne.lat],
+      ],
+    };
+    emitReducedTrips(socket);
+    socket.emit("message", socket.id);
   });
 
   socket.on("my-selected", (selected) => {
-    console.log(selected);
-    state.selected = selected;
+    // console.log(`${socket.id} my-selected`, selected);
+    state[socket.id] = { ...state[socket.id], selected };
+    emitReducedTrips(socket);
+  });
+
+  socket.on("disconnect", () => {
+    pollDataProvider.stop();
+    const id = socket.id;
+    delete state[id];
+    console.log("disconnected", state);
   });
 });
 

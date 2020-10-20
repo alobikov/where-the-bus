@@ -1,5 +1,5 @@
 import axios from "axios";
-import { IAllRoutes, ITripCollection } from "./../types/types";
+import { IBusRoutes, ITripCollection } from "./../types/types";
 import Trip from "../trip";
 
 // convert string 25256398 to 25.256398
@@ -7,7 +7,7 @@ export const gpsFormat = (x: string): number => {
   return parseFloat(x.slice(0, 2) + "." + x.slice(2));
 };
 
-export const mockAll = (): IAllRoutes => {
+export const mockAll = (): IBusRoutes => {
   return {
     bus: ["1", "2", "3", "3G"],
     tbus: ["10", "13", "17"],
