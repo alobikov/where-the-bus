@@ -4,9 +4,7 @@ export default class Trip {
     public type: string,
     public title: string,
     public lngLat: [number, number],
-    public course: number,
-    public isDead: boolean = false,
-    public isAlive: boolean = true
+    public course: number
   ) {}
   toJson() {
     return JSON.stringify({

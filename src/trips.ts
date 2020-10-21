@@ -54,20 +54,10 @@ export class Trips {
     );
   }
 
-  getDead(): string[] {
-    return this.allIds.filter((id) => this.all[id].isDead);
-  }
-
   removeId(id): string {
     this.allIds = this.allIds.filter((idx) => idx !== id);
     delete this.all[id];
     return id;
-  }
-
-  removeDead(): string[] {
-    const deadList = this.getDead();
-    deadList.forEach((id) => this.removeId(id));
-    return deadList;
   }
 }
 
