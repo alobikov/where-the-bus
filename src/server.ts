@@ -32,6 +32,10 @@ const fetchAndUpdateTrips = () => {
 setInterval(() => {
   stats.tripsAmount = trips.length;
   stats.clientsAmount = Object.keys(state).length;
+  const ut = process.uptime();
+  stats.uptime = ` ${Math.floor(ut / 86400)} day(s) ${Math.floor(
+    ut / 3600
+  )} hour(s) ${Math.floor(ut / 60)} minute(s)`;
   console.log(`trips: ${stats.tripsAmount}; clients: ${stats.clientsAmount}`);
 }, 60000);
 
