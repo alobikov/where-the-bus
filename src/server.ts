@@ -1,4 +1,6 @@
 import http from "http";
+const fs = require("fs").promises;
+import path from "path";
 import socketIO from "socket.io";
 
 import busRoutes from "./components/bus_routes";
@@ -41,11 +43,11 @@ setInterval(() => {
 
 const server = http.createServer((req, res) => {
   switch (req.url) {
-    case "/": {
-      res.statusCode = 200; // default value
-      res.end("Welcome to WhereMyBus API");
-      return;
-    }
+    // case "/": {
+    //   res.statusCode = 200; // default value
+    //   res.end("Welcome to WhereMyBus API");
+    //   return;
+    // }
     case "/routes": {
       res.setHeader("Access-Control-Allow-Origin", "*");
       res.setHeader("Content-Type", "application/json");
@@ -64,6 +66,31 @@ const server = http.createServer((req, res) => {
       res.setHeader("Access-Control-Allow-Origin", "*");
       res.write(stats.toHtml());
       res.end();
+      return;
+    }
+    case "/": {
+      fs.readFile(path.resolve("public/index.html")).then((contents) => {
+        res.setHeader("Content-Type", "text/html");
+        res.writeHead(200);
+        res.end(contents);
+      });
+      return;
+    }
+    case "/bundle.js": {
+      fs.readFile(path.resolve("public/bundle.js")).then((contents) => {
+        res.setHeader("Content-Type", "application/javascript");
+        res.writeHead(200);
+        res.end(contents);
+      });
+      return;
+    }
+    case "/index.css": {
+      fs.readFile(path.resolve("public/index.css")).then((contents) => {
+        res.setHeader("Content-Type", "text/css");
+        res.writeHead(200);
+        res.end(contents);
+      });
+      return;
     }
     default: {
       res.statusCode = 404;
