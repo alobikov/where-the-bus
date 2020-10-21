@@ -1,4 +1,4 @@
-import { IStateRecord } from "./types/types";
+import { IStateRecord } from "../types/types";
 
 /* 
  state holds clients data in format 

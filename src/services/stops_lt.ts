@@ -1,6 +1,6 @@
 import axios from "axios";
 import { IBusRoutes, ITripCollection } from "./../types/types";
-import Trip from "../trip";
+import Trip from "../components/trip";
 
 // convert string 25256398 to 25.256398
 export const gpsFormat = (x: string): number => {

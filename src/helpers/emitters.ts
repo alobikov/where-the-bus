@@ -1,6 +1,6 @@
 import { Socket } from "socket.io";
-import { StateProps } from "./types/types";
-import { Trips } from "./trips";
+import { StateProps } from "../types/types";
+import { Trips } from "../components/trips";
 
 // emit trips bounded to client window and only for routes selected by client
 export const emitReducedTrips = (

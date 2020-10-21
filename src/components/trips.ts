@@ -1,5 +1,5 @@
 import Trip from "./trip";
-import { calcCourse, isPntInBounds, isCoordinatesEqual } from "./math";
+import { calcCourse, isPntInBounds, isCoordinatesEqual } from "../utils/math";
 
 export class Trips {
   private all: Record<string, Trip> = {}; // {'1234': Trip_instance,....}

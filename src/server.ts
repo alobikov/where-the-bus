@@ -1,13 +1,14 @@
 import http from "http";
 import socketIO from "socket.io";
 
-import busRoutes from "./bus_routes";
-import trips from "./trips";
+import busRoutes from "./components/bus_routes";
+import trips from "./components/trips";
 import apiStops from "./services/stops_lt";
-import Interval from "./interval";
-import { emitReducedTrips } from "./emitters";
+import Interval from "./utils/interval";
+import { emitReducedTrips } from "./helpers/emitters";
 import { port } from "./config";
-import { state } from "./state";
+import { state } from "./components/state";
+import { stats } from "./components/stats";
 
 // fetch from stops.lt
 // init Routes and Trips collections
@@ -26,7 +27,9 @@ const fetchAndUpdateTrips = () => {
 
 // report stats each minute
 setInterval(() => {
-  console.log("Records in trips:", trips.length);
+  stats.tripsAmount = trips.length;
+  stats.clientsAmount = Object.keys(state).length;
+  console.log(`trips: ${stats.tripsAmount}; clients: ${stats.clientsAmount}`);
 }, 60000);
 
 const server = http.createServer((req, res) => {
@@ -37,7 +40,6 @@ const server = http.createServer((req, res) => {
       return;
     }
     case "/routes": {
-      console.log("GET '/rotes' request");
       res.setHeader("Access-Control-Allow-Origin", "*");
       res.setHeader("Content-Type", "application/json");
       res.write(busRoutes.toJson());
@@ -45,12 +47,16 @@ const server = http.createServer((req, res) => {
       return;
     }
     case "/trips": {
-      console.log("GET '/trips' request");
       res.setHeader("Access-Control-Allow-Origin", "*");
       res.setHeader("Content-Type", "application/json");
       res.write(trips.toJson());
       res.end();
       return;
+    }
+    case "/stats": {
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.write(stats.toHtml());
+      res.end();
     }
     default: {
       res.statusCode = 404;

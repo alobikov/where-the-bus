@@ -1,4 +1,4 @@
-import { deadIntervalSec } from "./config";
+import { deadIntervalSec } from "../config";
 
 type Pos = [number, number];
 

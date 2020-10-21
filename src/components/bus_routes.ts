@@ -1,5 +1,5 @@
-import { IBusRoutes, ITripCollection } from "./types/types";
-import { sort } from "./utils/sort";
+import { IBusRoutes, ITripCollection } from "../types/types";
+import { sort } from "../utils/sort";
 
 // AllRoutes should support lazy initialization
 class BusRoutes {
