@@ -12,7 +12,6 @@ import { stats } from "./components/stats";
 
 const runDuration = parseFloat(process.env.RUN_DURATION) || config.runDuration; //  default - forever
 const port = parseInt(process.env.PORT) || config.port;
-console.log("run", runDuration);
 
 // fetch from stops.lt
 // init Routes and Trips collections
@@ -117,6 +116,12 @@ io.on("connect", (socket) => {
   });
 });
 
+const until = !!runDuration
+  ? new Date(Date.now() + 3600 * 1000 * runDuration).toLocaleString()
+  : "forever";
+stats.runningUntil = until;
 server.listen(port, () => {
-  console.log("Server running on", (server.address() as any).port);
+  console.log(
+    `Server running on port ${(server.address() as any).port} until: ${until}`
+  );
 });
