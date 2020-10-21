@@ -2,7 +2,7 @@ import { IBusRoutes, ITripCollection } from "./types/types";
 import { sort } from "./utils/sort";
 
 // AllRoutes should support lazy initialization
-export default class BusRoutes {
+class BusRoutes {
   private props: IBusRoutes;
 
   get allTypes(): IBusRoutes {
@@ -22,3 +22,5 @@ export default class BusRoutes {
     this.props = { bus: sort([...routes.bus]), tbus: sort([...routes.tbus]) };
   }
 }
+
+export default new BusRoutes();

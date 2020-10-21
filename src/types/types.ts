@@ -9,3 +9,10 @@ export interface ITripCollection {
   course?: number;
   lngLat: number[];
 }
+
+export interface IStateRecord {
+  bounds?: [[number, number], [number, number]];
+  selected?: { tbus: string[]; bus: string[] };
+}
+
+export type StateProps = Record<string, IStateRecord>;

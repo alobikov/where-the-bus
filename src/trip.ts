@@ -4,7 +4,6 @@ export default class Trip {
     public type: string,
     public title: string,
     public lngLat: [number, number],
-    public updatedAt,
     public course: number,
     public isDead: boolean = false,
     public isAlive: boolean = true

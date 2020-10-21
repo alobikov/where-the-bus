@@ -1,39 +1,28 @@
 import Trip from "./trip";
-import {
-  calcCourse,
-  calcIsDead,
-  isPntInBounds,
-  isCoordinatesEqual,
-} from "./math";
+import { calcCourse, isPntInBounds, isCoordinatesEqual } from "./math";
 
-export default class Trips {
+export class Trips {
   private all: Record<string, Trip> = {}; // {'1234': Trip_instance,....}
   private allIds: string[] = [];
 
   set(data) {
-    const timeNow = Date.now();
+    // this.all = {};
+    this.allIds = [];
     data.forEach(({ id, type, title, lngLat }) => {
-      if (!this.all[id]) {
-        // new trip addition
-        this.all[id] = new Trip(id, type, title, lngLat, timeNow, -135);
-        this.allIds.push(id);
-      } else {
-        // existing trip update
-        // this.all[id].title = title;
-        // this.all[id].type = type;
-        const prevPos = this.all[id].lngLat;
-        if (isCoordinatesEqual(prevPos, lngLat, [0.00001, 0.00001])) {
-          const dead = calcIsDead(this.all[id].updatedAt, timeNow);
-          // if (dead) console.log(id);
-          this.all[id].isDead = dead;
-        } else {
-          this.all[id].isDead = false;
-          this.all[id].course = calcCourse(prevPos, lngLat);
-          this.all[id].lngLat = lngLat;
-          this.all[id].updatedAt = timeNow;
-        }
+      let course = 135;
+      if (this.all[id]) {
+        course = this.all[id].course;
+        const prevLngLat = this.all[id].lngLat;
+        course = isCoordinatesEqual(prevLngLat, lngLat, [0.00001, 0.00001])
+          ? course
+          : calcCourse(this.all[id].lngLat, lngLat);
       }
+      this.all[id] = new Trip(id, type, title, lngLat, course);
+      this.allIds.push(id);
     });
+    Object.keys(this.all).forEach(
+      (id) => !this.allIds.includes(id) && delete this.all[id]
+    );
   }
 
   toJson() {
@@ -80,13 +69,6 @@ export default class Trips {
     deadList.forEach((id) => this.removeId(id));
     return deadList;
   }
-
-  removeOutdated(): string[] {
-    const timeNow = Date.now();
-    const outdatedIds = this.allIds.filter((id) =>
-      calcIsDead(this.all[id].updatedAt, timeNow)
-    );
-    outdatedIds.forEach((id) => this.removeId(id));
-    return outdatedIds;
-  }
 }
+
+export default new Trips();

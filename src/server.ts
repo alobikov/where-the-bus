@@ -1,53 +1,34 @@
-import { IBusRoutes } from "./types/types";
 import http from "http";
 import socketIO from "socket.io";
-import BusRoutes from "./bus_routes";
-import Trips from "./trips";
+
+import busRoutes from "./bus_routes";
+import trips from "./trips";
 import apiStops from "./services/stops_lt";
 import Interval from "./interval";
-import { Socket } from "dgram";
+import { emitReducedTrips } from "./emitters";
+import { port } from "./config";
+import { state } from "./state";
 
-const port: number = 9001;
-var selectedId;
-const busRoutes = new BusRoutes();
-const trips = new Trips();
-
-interface IStateRecord {
-  bounds?: [[number, number], [number, number]];
-  selected?: { tbus: string[]; bus: string[] };
-}
-const state: Record<string, IStateRecord> = {};
-
-// init Routes and Trips collections; called once
+// fetch from stops.lt
+// init Routes and Trips collections
+// called once only here
 apiStops.fetchAll().then((data) => {
   busRoutes.set(data);
   trips.set(data);
-  // state.selected = busRoutes.allTypes as any;
 });
-// fetch from stops.lt and parse data to internal collection; called on interval
+
+// fetch from stops.lt
+// and parse data to internal collection
+// called on interval
 const fetchAndUpdateTrips = () => {
   apiStops.fetchAll().then((data) => trips.set(data));
 };
-// emit trips bounded to client window and only for routes selected by client
-const emitReducedTrips = (socket) => {
-  // console.log("in emitReduced", state[socket.id]?.bounds);
-  const boundedTrips = trips.getBounded(state[socket.id].bounds);
-  const selectedTrips = trips.getSelected(
-    boundedTrips,
-    state[socket.id].selected
-  );
-  socket.emit(
-    "new-trips",
-    `[${selectedTrips.map((trip) => trip.toJson()).join(",")}]`
-  );
-};
-// report each minute
+
+// report stats each minute
 setInterval(() => {
-  console.log("Records in trips:", trips.length, trips.getDead().length);
-  const deadList = trips.removeOutdated();
-  console.log(deadList);
+  console.log("Records in trips:", trips.length);
 }, 60000);
-6;
+
 const server = http.createServer((req, res) => {
   switch (req.url) {
     case "/": {
@@ -78,13 +59,6 @@ const server = http.createServer((req, res) => {
   }
 });
 
-// const logger = new Logger();
-// logger.on("message", (payload) => {
-//   console.log(payload);
-// });
-
-// logger.log();
-
 const io: socketIO.Server = socketIO(server);
 
 io.on("connect", (socket) => {
@@ -95,10 +69,10 @@ io.on("connect", (socket) => {
   const pollDataProvider = new Interval(() => {
     // set task(s) for the interval
     fetchAndUpdateTrips();
-    emitReducedTrips(socket);
+    emitReducedTrips(socket, trips, state);
   }, 5000);
   pollDataProvider.start();
-
+  //? Stop polling
   setTimeout(() => {
     pollDataProvider.stop();
     console.log("Polling of Data Provider stopped!");
@@ -114,14 +88,13 @@ io.on("connect", (socket) => {
         [bounds._ne.lng, bounds._ne.lat],
       ],
     };
-    emitReducedTrips(socket);
-    socket.emit("message", socket.id);
+    emitReducedTrips(socket, trips, state);
   });
 
   socket.on("my-selected", (selected) => {
     // console.log(`${socket.id} my-selected`, selected);
     state[socket.id] = { ...state[socket.id], selected };
-    emitReducedTrips(socket);
+    emitReducedTrips(socket, trips, state);
   });
 
   socket.on("disconnect", () => {
