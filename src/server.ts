@@ -6,9 +6,13 @@ import trips from "./components/trips";
 import apiStops from "./services/stops_lt";
 import Interval from "./utils/interval";
 import { emitReducedTrips } from "./helpers/emitters";
-import { port } from "./config";
+import * as config from "./config";
 import { state } from "./components/state";
 import { stats } from "./components/stats";
+
+const runDuration = parseFloat(process.env.RUN_DURATION) || config.runDuration; //  default - forever
+const port = parseInt(process.env.PORT) || config.port;
+console.log("run", runDuration);
 
 // fetch from stops.lt
 // init Routes and Trips collections
@@ -25,7 +29,7 @@ const fetchAndUpdateTrips = () => {
   apiStops.fetchAll().then((data) => trips.set(data));
 };
 
-// report stats each minute
+// update and report statistics regularly
 setInterval(() => {
   stats.tripsAmount = trips.length;
   stats.clientsAmount = Object.keys(state).length;
@@ -79,10 +83,12 @@ io.on("connect", (socket) => {
   }, 5000);
   pollDataProvider.start();
   //? Stop polling
-  setTimeout(() => {
-    pollDataProvider.stop();
-    console.log("Polling of Data Provider stopped!");
-  }, 3600 * 1000 * 1); //hours
+  if (runDuration !== 0) {
+    setTimeout(() => {
+      pollDataProvider.stop();
+      console.log("Polling of Data Provider stopped!");
+    }, 3600 * 1000 * runDuration); //hours
+  }
   //!=====================================================
 
   socket.on("my-bounds", (bounds) => {
