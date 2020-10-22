@@ -137,6 +137,7 @@ const until = !!runDuration
   ? new Date(Date.now() + 3600 * 1000 * runDuration).toLocaleString()
   : "forever";
 stats.runningUntil = until;
+
 server.listen(port, () => {
   console.log(
     `Server running on port ${(server.address() as any).port} until: ${until}`
