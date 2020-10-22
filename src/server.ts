@@ -11,6 +11,7 @@ import { emitReducedTrips } from "./helpers/emitters";
 import * as config from "./config";
 import { state } from "./components/state";
 import { stats } from "./components/stats";
+import { convertToUptime } from "./utils/math";
 
 const runDuration = parseFloat(process.env.RUN_DURATION) || config.runDuration; //  default - forever
 const port = parseInt(process.env.PORT) || config.port;
@@ -35,9 +36,7 @@ setInterval(() => {
   stats.tripsAmount = trips.length;
   stats.clientsAmount = Object.keys(state).length;
   const ut = process.uptime();
-  stats.uptime = ` ${Math.floor(ut / 86400)} day(s) ${Math.floor(
-    ut / 3600
-  )} hour(s) ${Math.floor(ut / 60)} minute(s)`;
+  stats.uptime = convertToUptime(ut);
   console.log(`trips: ${stats.tripsAmount}; clients: ${stats.clientsAmount}`);
 }, 60000);
 
@@ -64,8 +63,6 @@ const server = http.createServer((req, res) => {
       break;
     }
     case /\/public\/.*/.test(req.url): {
-      console.log(req.url);
-      console.log(path.resolve(req.url.slice(1)));
       fs.readFile(path.resolve(req.url.slice(1))).then((contents) => {
         res.setHeader("Content-Type", "text/css");
         res.writeHead(200);
