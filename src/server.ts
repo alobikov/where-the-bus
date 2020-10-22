@@ -42,55 +42,44 @@ setInterval(() => {
 }, 60000);
 
 const server = http.createServer((req, res) => {
-  switch (req.url) {
-    // case "/": {
-    //   res.statusCode = 200; // default value
-    //   res.end("Welcome to WhereMyBus API");
-    //   return;
-    // }
-    case "/routes": {
+  switch (true) {
+    case /\/routes/.test(req.url): {
       res.setHeader("Access-Control-Allow-Origin", "*");
       res.setHeader("Content-Type", "application/json");
       res.write(busRoutes.toJson());
       res.end();
-      return;
+      break;
     }
-    case "/trips": {
+    case /\/trips/.test(req.url): {
       res.setHeader("Access-Control-Allow-Origin", "*");
       res.setHeader("Content-Type", "application/json");
       res.write(trips.toJson());
       res.end();
-      return;
+      break;
     }
-    case "/stats": {
+    case /\/stats/.test(req.url): {
       res.setHeader("Access-Control-Allow-Origin", "*");
       res.write(stats.toHtml());
       res.end();
-      return;
+      break;
     }
-    case "/": {
+    case /\/public\/.*/.test(req.url): {
+      console.log(req.url);
+      console.log(path.resolve(req.url.slice(1)));
+      fs.readFile(path.resolve(req.url.slice(1))).then((contents) => {
+        res.setHeader("Content-Type", "text/css");
+        res.writeHead(200);
+        res.end(contents);
+      });
+      break;
+    }
+    case /\//.test(req.url): {
       fs.readFile(path.resolve("public/index.html")).then((contents) => {
         res.setHeader("Content-Type", "text/html");
         res.writeHead(200);
         res.end(contents);
       });
-      return;
-    }
-    case "/bundle.js": {
-      fs.readFile(path.resolve("public/bundle.js")).then((contents) => {
-        res.setHeader("Content-Type", "application/javascript");
-        res.writeHead(200);
-        res.end(contents);
-      });
-      return;
-    }
-    case "/index.css": {
-      fs.readFile(path.resolve("public/index.css")).then((contents) => {
-        res.setHeader("Content-Type", "text/css");
-        res.writeHead(200);
-        res.end(contents);
-      });
-      return;
+      break;
     }
     default: {
       res.statusCode = 404;
