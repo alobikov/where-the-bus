@@ -9,7 +9,7 @@ import { setStock, allTypeRoutes, selected } from "./stock";
 import { onMapBoundsChange } from "./helpers";
 
 const rest = new RestApi();
-const socket = io("ws://localhost:9001");
+const socket = io();
 console.log(socket);
 
 function emitSelected(selected) {
