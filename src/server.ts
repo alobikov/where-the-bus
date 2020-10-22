@@ -35,8 +35,7 @@ const fetchAndUpdateTrips = () => {
 setInterval(() => {
   stats.tripsAmount = trips.length;
   stats.clientsAmount = Object.keys(state).length;
-  const ut = process.uptime();
-  stats.uptime = convertToUptime(ut);
+  stats.uptime = convertToUptime(process.uptime());
   console.log(`trips: ${stats.tripsAmount}; clients: ${stats.clientsAmount}`);
 }, 60000);
 

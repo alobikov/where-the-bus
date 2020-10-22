@@ -53,9 +53,9 @@ export const isPntInBounds = (lngLat, bounds) => {
 // lngLat = [2,5]
 // bounds = [[0,0],[1,8]]
 // console.log(isPntInBounds(lngLat, bounds))
-export const convertToUptime = (ms): string => {
-  const days = Math.floor(ms / 86400);
-  const hours = Math.floor((ms / (1000 * 60 * 60)) % 24);
-  const minutes = Math.floor((ms / (1000 * 60)) % 60);
+export const convertToUptime = (sec): string => {
+  const days = Math.floor(sec / 86400);
+  const hours = Math.floor((sec / (60 * 60)) % 24);
+  const minutes = Math.floor((sec / 60) % 60);
   return ` ${days} day(s) ${hours} hour(s) ${minutes} minute(s)`;
 };
