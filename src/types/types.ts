@@ -12,7 +12,7 @@ export interface ITripCollection {
 
 export interface IStateRecord {
   bounds?: [[number, number], [number, number]];
-  selected?: { tbus: string[]; bus: string[] };
+  selected?: IBusRoutes;
 }
 
-export type StateProps = Record<string, IStateRecord>;
+export type StateProps = {};

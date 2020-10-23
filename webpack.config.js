@@ -4,6 +4,7 @@ module.exports = {
   entry: "./src/client/index.js",
   output: {
     path: __dirname + "/public",
+    publicPath: "public/",
     filename: "bundle.js",
   },
   devtool: "inline-source-map",
@@ -15,7 +16,25 @@ module.exports = {
     rules: [
       {
         test: /\.css$/,
-        use: ["style-loader", "css-loader"],
+        use: [
+          {
+            loader: "style-loader",
+          },
+          {
+            loader: "css-loader",
+          },
+        ],
+      },
+      {
+        test: /\.svg$/,
+        use: [
+          {
+            loader: "file-loader",
+            options: {
+              encoding: true,
+            },
+          },
+        ],
       },
       {
         test: /\.js$/,

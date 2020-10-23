@@ -7,13 +7,20 @@
     <title>Where My Bus</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
     <link href='https://api.mapbox.com/mapbox-gl-js/v1.12.0/mapbox-gl.css' rel='stylesheet' />
-    <link href='public/index.css' rel='stylesheet' />
+    <!-- <link href='public/index.css' rel='stylesheet' /> -->
     <link rel="icon" type="image/png" href="public/favicon.ico">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
 </head>
 
 <body>
     <div id='map'></div>
-    <div class="map-overlay">
+    <div class="slider-show-container map-overlay">
+        <div id="slider-show-btn">
+            <label>Filters</label>
+            <img src="public/down.svg" alt="chevron down icon" width="24" height="18">
+        </div>
+    </div>
+    <div id="filters-slider" class="map-overlay">
         <div class="map-overlay-inner">
             <label>Carrier type</label>
             <select id="carrier" name="carrier">
@@ -27,6 +34,10 @@
                 <button name="markers" type="button">Markers</button>
             </div>
             <div id="routes"></div>
+            <hr style="height:2px;margin:10px;border-width:0;color:gray;background-color:gray">
+            <div id="slider-close" style='text-align:center;'>
+                <img src="public/up.svg" alt="chevron up icon" width="24" height="18">
+            </div>
         </div>
     </div>
     <template id="bus">

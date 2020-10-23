@@ -2,20 +2,28 @@ import mapboxgl from "mapbox-gl"; // or "const mapboxgl = require('mapbox-gl');"
 import RestApi from "./api/rest_api";
 import io from "socket.io-client";
 
+import "./styles/index.css";
 import { park } from "./park";
 import { vilniusLngLat, mapboxToken } from "./config";
 import * as render from "./render";
 import { setStock, allTypeRoutes, selected } from "./stock";
 import { onMapBoundsChange } from "./helpers";
+import { domain } from "process";
 
 const rest = new RestApi();
 const socket = io();
 console.log(socket);
-
+//
+//
 function emitSelected(selected) {
   socket.emit("my-selected", selected);
 }
-
+socket.on("connect", () => {
+  console.log("connected");
+  socket.emit("my-bounds", map.getBounds());
+  socket.emit("my-selected", selected);
+});
+// TODO bounds-request becomes obsolete
 socket.on("bounds-requested", () => {
   console.log("bounds-requested");
   socket.emit("my-bounds", map.getBounds());
@@ -81,8 +89,32 @@ map.on("load", () => {
     console.log("selected bus", selected.bus);
     console.log("selected tbus", selected.tbus);
     emitSelected(selected);
-    // initSelectedMarkers(selected);
-    // initMarkers();
+  });
+  // handle: slider open
+  const sliderShowContainer = document.querySelector(".slider-show-container");
+  const sliderBtn = document.getElementById("slider-show-btn");
+  const filtersSlider = document.getElementById("filters-slider");
+  sliderBtn.addEventListener("click", () => {
+    console.log("open");
+    sliderBtn.classList.add("animate__animated", "animate__fadeOut");
+    filtersSlider.style.display = "block";
+    filtersSlider.classList.add("animate__animated", "animate__slideInDown");
+    setTimeout(() => {
+      sliderBtn.classList.remove("animate__animated", "animate__fadeOut");
+      filtersSlider.classList.remove("animate__slideInDown");
+      sliderShowContainer.style.display = "none";
+    }, 700);
+  });
+  // handle: slider close
+  const sliderClose = document.getElementById("slider-close");
+  sliderClose.addEventListener("click", () => {
+    filtersSlider.classList.add("animate__slideOutUp");
+    setTimeout(() => {
+      sliderShowContainer.style.display = "block";
+      filtersSlider.style.display = "none";
+      filtersSlider.classList.remove("animate__slideOutUp");
+      sliderBtn.classList.add("animate__animated", "animate__fadeIn");
+    }, 700);
   });
 });
 

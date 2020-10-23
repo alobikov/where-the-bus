@@ -8,4 +8,10 @@ import { IStateRecord } from "../types/types";
     bounds: [ lngLat, lngLat ]     // sw and ne bounding corners of client's map window
   }  
  */
-export const state: Record<string, IStateRecord> = {};
+export const state: IStateRecord = {
+  bounds: [
+    [0, 0],
+    [0, 0],
+  ],
+  selected: { tbus: ["all"], bus: ["all"] },
+};

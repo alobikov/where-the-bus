@@ -43,9 +43,9 @@ const currierList = (carrier = "bus", emitSelected) => {
 
 /// filter: 'all' | 'none'; comes from button name attribute
 const filtered = (filter, carrier, emitSelected) => {
-  if (filter === "none") selected[carrier].length = 0;
-  if (filter === "all") selected[carrier] = [...allTypeRoutes[carrier]];
-  if (filter === "markers") {
+  if (filter === "none") selected[carrier] = [];
+  else if (filter === "all") selected[carrier] = [...allTypeRoutes[carrier]];
+  else if (filter === "markers") {
     _showIds();
     return;
   }

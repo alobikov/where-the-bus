@@ -8,6 +8,15 @@ class BusRoutes {
   get allTypes(): IBusRoutes {
     return this.props;
   }
+
+  get allBus(): string[] {
+    return this.props.bus;
+  }
+
+  get allTbus(): string[] {
+    return this.props.tbus;
+  }
+
   toJson(): string {
     return JSON.stringify(this.props);
   }

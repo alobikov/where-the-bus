@@ -12,6 +12,7 @@ import * as config from "./config";
 import { state } from "./components/state";
 import { stats } from "./components/stats";
 import { convertToUptime } from "./utils/math";
+import { IBusRoutes } from "./types/types";
 
 const runDuration = parseFloat(process.env.RUN_DURATION) || config.runDuration; //  default - forever
 const port = parseInt(process.env.PORT) || config.port;
@@ -59,6 +60,15 @@ const server = http.createServer((req, res) => {
       res.setHeader("Access-Control-Allow-Origin", "*");
       res.write(stats.toHtml());
       res.end();
+      break;
+    }
+    case /\/public\/.+(xml|svg)/.test(req.url): {
+      fs.readFile(path.resolve(req.url.slice(1))).then((contents) => {
+        res.setHeader("Access-Control-Allow-Origin", "*");
+        res.setHeader("Content-Type", "image/svg+xml;charset=utf-8");
+        res.writeHead(200);
+        res.end(contents);
+      });
       break;
     }
     case /\/public\/.*/.test(req.url): {
@@ -119,8 +129,17 @@ io.on("connect", (socket) => {
   });
 
   socket.on("my-selected", (selected) => {
-    // console.log(`${socket.id} my-selected`, selected);
-    state[socket.id] = { ...state[socket.id], selected };
+    console.log(`${socket.id} my-selected`, selected);
+
+    // handle 'all' token in received selected
+    let selectedResult: IBusRoutes = { ...selected };
+    if (!selected || selected.bus.includes("all")) {
+      selectedResult = { ...selectedResult, bus: busRoutes.allBus };
+    }
+    if (!selected || selected.tbus.includes("all")) {
+      selectedResult = { ...selectedResult, tbus: busRoutes.allTbus };
+    }
+    state[socket.id] = { ...state[socket.id], selected: selectedResult };
     emitReducedTrips(socket, trips, state);
   });
 
@@ -128,7 +147,7 @@ io.on("connect", (socket) => {
     pollDataProvider.stop();
     const id = socket.id;
     delete state[id];
-    console.log("disconnected", state);
+    console.log("disconnected", id);
   });
 });
 

@@ -1,12 +1,12 @@
 import { Socket } from "socket.io";
-import { StateProps } from "../types/types";
+import { IStateRecord } from "../types/types";
 import { Trips } from "../components/trips";
 
 // emit trips bounded to client window and only for routes selected by client
 export const emitReducedTrips = (
   socket: Socket,
   trips: Trips,
-  state: StateProps
+  state: IStateRecord
 ) => {
   // console.log("in emitReduced", state[socket.id]?.bounds);
   const boundedTrips = trips.getBounded(state[socket.id].bounds);
