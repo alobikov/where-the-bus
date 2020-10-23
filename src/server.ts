@@ -6,7 +6,7 @@ import socketIO from "socket.io";
 import busRoutes from "./components/bus_routes";
 import trips from "./components/trips";
 import apiStops from "./services/stops_lt";
-import Interval from "./utils/interval";
+import Interval, { PollStopsLt } from "./utils/interval";
 import { emitReducedTrips } from "./helpers/emitters";
 import * as config from "./config";
 import { state } from "./components/state";
@@ -38,7 +38,7 @@ setInterval(() => {
   stats.clientsAmount = Object.keys(state).length;
   stats.uptime = convertToUptime(process.uptime());
   console.log(`trips: ${stats.tripsAmount}; clients: ${stats.clientsAmount}`);
-}, 60000);
+}, 6000);
 
 const server = http.createServer((req, res) => {
   switch (true) {
@@ -99,25 +99,31 @@ const io: socketIO.Server = socketIO(server);
 io.on("connect", (socket) => {
   console.log("*** Socket.io user connected ***", socket.id);
   socket.emit("bounds-requested");
-
+  // TODO must be one and only one polling process
   //! ******************** POLLING ***********************
-  const pollDataProvider = new Interval(() => {
-    // set task(s) for the interval
+  // const pollDataProvider = new Interval(() => {
+  //   // set task(s) for the interval
+  //   fetchAndUpdateTrips();
+  //   emitReducedTrips(socket, trips, state);
+  // }, 5000);
+  // pollDataProvider.start();
+  // //? Stop polling
+  // if (runDuration !== 0) {
+  //   setTimeout(() => {
+  //     pollDataProvider.stop();
+  //     console.log("Polling of Data Provider stopped!");
+  //   }, 3600 * 1000 * runDuration); //hours
+  // }
+  //! NEW USE CASE
+  const pollService = PollStopsLt.instance(() => {
     fetchAndUpdateTrips();
-    emitReducedTrips(socket, trips, state);
-  }, 5000);
-  pollDataProvider.start();
-  //? Stop polling
-  if (runDuration !== 0) {
-    setTimeout(() => {
-      pollDataProvider.stop();
-      console.log("Polling of Data Provider stopped!");
-    }, 3600 * 1000 * runDuration); //hours
-  }
+    emitReducedTrips(pollService.getSubscribers, trips, state);
+  });
+  pollService.subscribe(socket);
+
   //!=====================================================
 
   socket.on("my-bounds", (bounds) => {
-    // console.log(`${socket.id} my-bounds`, bounds);
     state[socket.id] = {
       ...state[socket.id],
       bounds: [
@@ -125,12 +131,11 @@ io.on("connect", (socket) => {
         [bounds._ne.lng, bounds._ne.lat],
       ],
     };
-    emitReducedTrips(socket, trips, state);
+    emitReducedTrips(() => [socket], trips, state);
+    console.log(`${socket.id} my-bounds`, state);
   });
 
   socket.on("my-selected", (selected) => {
-    console.log(`${socket.id} my-selected`, selected);
-
     // handle 'all' token in received selected
     let selectedResult: IBusRoutes = { ...selected };
     if (!selected || selected.bus.includes("all")) {
@@ -140,11 +145,13 @@ io.on("connect", (socket) => {
       selectedResult = { ...selectedResult, tbus: busRoutes.allTbus };
     }
     state[socket.id] = { ...state[socket.id], selected: selectedResult };
-    emitReducedTrips(socket, trips, state);
+    console.log(`${socket.id} my-selected`, state);
+    emitReducedTrips(() => [socket], trips, state);
   });
 
   socket.on("disconnect", () => {
-    pollDataProvider.stop();
+    pollService.unsubscribe(socket);
+    // pollDataProvider.stop();
     const id = socket.id;
     delete state[id];
     console.log("disconnected", id);
