@@ -27,7 +27,7 @@ async function fetchAll() {
       id,
       type: type === "Autobusai" ? "bus" : "tbus",
       title,
-      lngLat: [gpsFormat(lng), gpsFormat(lat)],
+      cur: [gpsFormat(lng), gpsFormat(lat)],
     });
   });
   //   console.log("fetchAll", data);

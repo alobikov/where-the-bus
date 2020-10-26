@@ -1,6 +1,5 @@
 import { deadIntervalSec } from "../config";
-
-type Pos = [number, number];
+import { IVec, IPos } from "../types/types";
 
 export function incLngLat(lngLat, stepXY) {
   return [lngLat[0] + stepXY[0], lngLat[1] + stepXY[1]];
@@ -13,12 +12,12 @@ export function calcStepSize(vector, numOfSteps) {
 }
 
 // create vector from old and new coordinates
-export function makeVector(prevPos: Pos, curPos: Pos): Pos {
+export function makeVector(prevPos: IPos, curPos: IPos): IPos {
   return [curPos[0] - prevPos[0], curPos[1] - prevPos[1]];
 }
 
 // calculate course angle in degrees from old and new coordinates
-export function calcCourse(prevPos: Pos, curPos: Pos) {
+export function calcCourse(prevPos: IPos, curPos: IPos) {
   return Math.atan2(...makeVector(prevPos, curPos)) * (180 / Math.PI);
 }
 
@@ -39,7 +38,7 @@ export function calcIsDead(updatedAt: number, timeNow: number): boolean {
   return updatedAt + 1000 * deadIntervalSec < timeNow;
 }
 
-export const isPntInBounds = (lngLat, bounds) => {
+export const isPntInBounds = (lngLat: IPos, bounds: IVec) => {
   const [lb, tr] = bounds;
   const [x1, y1] = lb;
   const [x2, y2] = tr;

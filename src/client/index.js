@@ -1,3 +1,4 @@
+"use strict";
 import mapboxgl from "mapbox-gl"; // or "const mapboxgl = require('mapbox-gl');"
 import RestApi from "./api/rest_api";
 import io from "socket.io-client";
@@ -7,14 +8,18 @@ import { park } from "./park";
 import { vilniusLngLat, mapboxToken } from "./config";
 import * as render from "./render";
 import { setStock, allTypeRoutes, selected } from "./stock";
-import { onMapBoundsChange } from "./helpers";
-import { domain } from "process";
+import {
+  addNewTrips,
+  makeStep,
+  onMapBoundsChange,
+  updateTrips,
+} from "./helpers";
+import store, { getPosition, removePosition } from "./redux/store";
+import { keepIds } from "./redux/actions";
 
 const rest = new RestApi();
-const socket = io();
-console.log(socket);
-//
-//
+const socket = io("http://localhost:9001");
+
 function emitSelected(selected) {
   socket.emit("my-selected", selected);
 }
@@ -29,11 +34,32 @@ socket.on("bounds-requested", () => {
   socket.emit("my-bounds", map.getBounds());
 });
 socket.on("message", (data) => console.log(data));
-socket.on("new-trips", (data) => {
+socket.on("update-trips", (data) => {
   const newData = JSON.parse(data);
-  console.log(newData);
-  park.cleanUp(newData); // remove irrelevant ids
-  park.setData(newData, addMarker);
+  const newIds = newData.map((chunk) => chunk.id);
+  const outdatedIds = store
+    .getState()
+    .allIds.filter((n) => !newIds.includes(n));
+  console.log("ids to remove", outdatedIds);
+  outdatedIds.forEach((id) => {
+    store.getState().markersById[id].remove();
+    store.dispatch({ type: "REMOVE_TRIP", id });
+    removePosition(id);
+  });
+
+  console.log("update-trips Ids:", newIds);
+  updateTrips(newData, updateMarkerPosition);
+  // store.dispatch(keepIds(newIds));
+  // park.cleanUp(newData); // remove irrelevant ids
+  // park.setData(newData, addMarker);
+  console.log("update-trips", newData);
+  console.log("==============");
+});
+socket.on("add-trips", (data) => {
+  const newData = JSON.parse(data);
+  console.log("add-trips", data);
+  if (data.length > 0) addNewTrips(newData, addMarker);
+  // park.addData(newData, addMarker);
 });
 
 rest.fetchRoutes().then((data) => {
@@ -54,17 +80,16 @@ const map = new mapboxgl.Map({
   center: vilniusLngLat, // starting position [lng, lat]
   zoom: 17, // starting zoom
 });
+
 // function for injection
 function addMarker(busElm, lngLat) {
   return new mapboxgl.Marker(busElm).setLngLat(lngLat).addTo(map);
 }
 
 function animateMarkers(timestamp) {
-  park.ids.forEach((id) => {
-    const lngLat = park.makeStep(id);
-
-    park.markersById[id]?.setLngLat(park.makeStep(id));
-    // debugger;
+  store.getState().allIds.forEach((id) => {
+    const newCur = makeStep(id);
+    store.getState().markersById[id]?.setLngLat(newCur);
   });
   requestAnimationFrame(animateMarkers);
 }
@@ -118,18 +143,18 @@ map.on("load", () => {
   });
 });
 
-function removeMarkers() {
+function updateMarkerPosition(id, cur) {
+  store.getState().markersById[id].setLngLat(cur);
+}
+
+function removeMarkersFromMap(newIds) {
   let cnt = 0;
-  park.ids.forEach((id) => {
-    if (park.markersById[id]) {
+  store.getState().allIds.forEach((id) => {
+    if (!newIds.includes(id)) {
       cnt++;
-      park.markersById[id].remove();
+      store.getState().markersById[id].remove();
     }
   });
-  park.markersById = {};
-  // park.ids = [];
-  // park.busElmsById = {};
-  // park.pathById = {};
   console.log("Markers removed", cnt);
 }
 function initMarkers() {

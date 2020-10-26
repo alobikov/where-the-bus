@@ -1,12 +1,12 @@
 import http from "http";
-const fs = require("fs").promises;
+import { promises as fs } from "fs";
 import path from "path";
 import socketIO from "socket.io";
 
 import busRoutes from "./components/bus_routes";
 import trips from "./components/trips";
 import apiStops from "./services/stops_lt";
-import Interval, { PollStopsLt } from "./utils/interval";
+import PollService from "./services/poll_service";
 import { emitReducedTrips } from "./helpers/emitters";
 import * as config from "./config";
 import { state } from "./components/state";
@@ -29,7 +29,9 @@ apiStops.fetchAll().then((data) => {
 // and parse data to internal collection
 // called on interval
 const fetchAndUpdateTrips = () => {
-  apiStops.fetchAll().then((data) => trips.set(data));
+  apiStops.fetchAll().then((data) => {
+    const [oldIds, newIds] = trips.set(data);
+  });
 };
 
 // update and report statistics regularly
@@ -37,10 +39,11 @@ setInterval(() => {
   stats.tripsAmount = trips.length;
   stats.clientsAmount = Object.keys(state).length;
   stats.uptime = convertToUptime(process.uptime());
-  console.log(`trips: ${stats.tripsAmount}; clients: ${stats.clientsAmount}`);
-}, 6000);
+  // console.log(`trips: ${stats.tripsAmount}; clients: ${stats.clientsAmount}`);
+}, 10000);
 
 const server = http.createServer((req, res) => {
+  console.log(req.url);
   switch (true) {
     case /\/routes/.test(req.url): {
       res.setHeader("Access-Control-Allow-Origin", "*");
@@ -62,8 +65,8 @@ const server = http.createServer((req, res) => {
       res.end();
       break;
     }
-    case /\/public\/.+(xml|svg)/.test(req.url): {
-      fs.readFile(path.resolve(req.url.slice(1))).then((contents) => {
+    case /\/assets\/.+(xml|svg)/.test(req.url): {
+      fs.readFile(path.resolve("public", req.url.slice(1))).then((contents) => {
         res.setHeader("Access-Control-Allow-Origin", "*");
         res.setHeader("Content-Type", "image/svg+xml;charset=utf-8");
         res.writeHead(200);
@@ -71,9 +74,18 @@ const server = http.createServer((req, res) => {
       });
       break;
     }
-    case /\/public\/.*/.test(req.url): {
-      fs.readFile(path.resolve(req.url.slice(1))).then((contents) => {
-        res.setHeader("Content-Type", "text/css");
+    case /\/assets\/.+(ico|png)$/.test(req.url): {
+      fs.readFile(path.resolve("public", req.url.slice(1))).then((contents) => {
+        res.setHeader("Access-Control-Allow-Origin", "*");
+        res.setHeader("Content-Type", "image/png");
+        res.writeHead(200);
+        res.end(contents);
+      });
+      break;
+    }
+    case /.js$/.test(req.url): {
+      fs.readFile(path.resolve("public", req.url.slice(1))).then((contents) => {
+        res.setHeader("Content-Type", "application/script");
         res.writeHead(200);
         res.end(contents);
       });
@@ -99,15 +111,12 @@ const io: socketIO.Server = socketIO(server);
 io.on("connect", (socket) => {
   console.log("*** Socket.io user connected ***", socket.id);
   socket.emit("bounds-requested");
-  // TODO must be one and only one polling process
   //! ******************** POLLING ***********************
   // const pollDataProvider = new Interval(() => {
-  //   // set task(s) for the interval
   //   fetchAndUpdateTrips();
   //   emitReducedTrips(socket, trips, state);
   // }, 5000);
   // pollDataProvider.start();
-  // //? Stop polling
   // if (runDuration !== 0) {
   //   setTimeout(() => {
   //     pollDataProvider.stop();
@@ -115,9 +124,13 @@ io.on("connect", (socket) => {
   //   }, 3600 * 1000 * runDuration); //hours
   // }
   //! NEW USE CASE
-  const pollService = PollStopsLt.instance(() => {
-    fetchAndUpdateTrips();
-    emitReducedTrips(pollService.getSubscribers, trips, state);
+  const pollService = PollService.instance(() => {
+    apiStops.fetchAll().then((data) => {
+      const [oldIds, newIds] = trips.set(data);
+      emitReducedTrips(pollService.getSubscribers, trips, state, false);
+      // console.log("old trips", oldIds);
+      // console.log("new trips", newIds);
+    });
   });
   pollService.subscribe(socket);
 
@@ -132,7 +145,7 @@ io.on("connect", (socket) => {
       ],
     };
     emitReducedTrips(() => [socket], trips, state);
-    console.log(`${socket.id} my-bounds`, state);
+    // console.log(`${socket.id} my-bounds`, state);
   });
 
   socket.on("my-selected", (selected) => {
@@ -145,16 +158,15 @@ io.on("connect", (socket) => {
       selectedResult = { ...selectedResult, tbus: busRoutes.allTbus };
     }
     state[socket.id] = { ...state[socket.id], selected: selectedResult };
-    console.log(`${socket.id} my-selected`, state);
     emitReducedTrips(() => [socket], trips, state);
+    // console.log(`${socket.id} my-selected`, state);
   });
 
   socket.on("disconnect", () => {
     pollService.unsubscribe(socket);
-    // pollDataProvider.stop();
     const id = socket.id;
     delete state[id];
-    console.log("disconnected", id);
+    console.log("disconnected and state cleaned", id);
   });
 });
 

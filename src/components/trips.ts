@@ -1,3 +1,4 @@
+import { IBusRoutes, ITripCollection, IVec } from "./../types/types";
 import Trip from "./trip";
 import { calcCourse, isPntInBounds, isCoordinatesEqual } from "../utils/math";
 
@@ -5,29 +6,39 @@ export class Trips {
   private all: Record<string, Trip> = {}; // {'1234': Trip_instance,....}
   private allIds: string[] = [];
 
-  set(data) {
-    // this.all = {};
-    this.allIds = [];
-    data.forEach(({ id, type, title, lngLat }) => {
-      let course = 135;
-      if (this.all[id]) {
-        course = this.all[id].course;
-        const prevLngLat = this.all[id].lngLat;
-        course = isCoordinatesEqual(prevLngLat, lngLat, [0.00001, 0.00001])
-          ? course
-          : calcCourse(this.all[id].lngLat, lngLat);
+  set(data: ITripCollection[]): [string[], string[]] {
+    const newAll: Record<string, Trip> = {};
+    const newAllIds: string[] = [];
+    let newTripIds: string[] = [];
+    let oldTripIds: string[] = [];
+
+    data.forEach(({ id, type, title, cur }) => {
+      let prev = cur;
+      let course: number;
+      const savedTrip = this.all[id];
+      if (!!savedTrip) {
+        oldTripIds.push(id);
+        course = savedTrip.course;
+        if (!isCoordinatesEqual(savedTrip.cur, cur, [0.00001, 0.00001])) {
+          course = calcCourse(savedTrip.cur, cur);
+          prev = savedTrip.cur;
+        }
+      } else {
+        // new trip
+        newTripIds.push(id);
+        course = 135;
       }
-      this.all[id] = new Trip(id, type, title, lngLat, course);
-      this.allIds.push(id);
+      newAll[id] = new Trip(id, type, title, prev, cur, course);
+      newAllIds.push(id);
     });
-    Object.keys(this.all).forEach(
-      (id) => !this.allIds.includes(id) && delete this.all[id]
-    );
+    this.all = newAll;
+    this.allIds = newAllIds;
+    return [oldTripIds, newTripIds];
   }
 
   toJson() {
     return `[${Object.keys(this.all)
-      .map((key) => this.all[key].toJson())
+      .map((key) => this.all[key].toJson(false))
       .join(",")}]`;
   }
 
@@ -39,13 +50,13 @@ export class Trips {
     return this.all[id];
   }
 
-  getBounded(bounds) {
+  getBounded(bounds: IVec) {
     return Object.keys(this.all)
-      .filter((key) => isPntInBounds(this.all[key].lngLat, bounds))
+      .filter((key) => isPntInBounds(this.all[key].cur, bounds))
       .map((key) => this.all[key]);
   }
 
-  getSelected(trips, selected) {
+  getSelected(trips: Trip[], selected: IBusRoutes) {
     if (!selected) return trips;
     return trips.filter(
       (trip) =>
@@ -54,7 +65,7 @@ export class Trips {
     );
   }
 
-  removeId(id): string {
+  removeId(id: string): string {
     this.allIds = this.allIds.filter((idx) => idx !== id);
     delete this.all[id];
     return id;

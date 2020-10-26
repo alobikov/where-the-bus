@@ -8,4 +8,4 @@ import { IStateRecord } from "../types/types";
     bounds: [ lngLat, lngLat ]     // sw and ne bounding corners of client's map window
   }  
  */
-export const state: IStateRecord = {};
+export const state: Record<string, IStateRecord> = {};

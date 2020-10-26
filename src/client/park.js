@@ -5,22 +5,31 @@ export const park = {
   ids: [],
   busElmsById: {}, // { uuid: { title: "4G", polyElm: {}, busElm: {}, type: "bus" | "tbus" } };
   markersById: {},
-  pathById: {}, //{ uuid: { prevLngLat: [x,y], curLngLat: [x,y], stepSize[x,y] } }
+  pathById: {}, //{ uuid: { prev: [x,y], cur: [x,y], stepSize[x,y] } }
   setData(data, addMarkerToMap) {
     data.forEach((chunk) => {
-      // chunk { id: '14019492402', type: 'bus', title: '76', lngLat: [ '25.292268', '54.720230' ] }
+      // chunk { id: '14019492402', type: 'bus', title: '76', cur: [ '25.292268', '54.720230' ],prev?: [number,number] }
       if (this.ids.includes(chunk.id)) updatePark(this, chunk);
       else {
         addToPark(this, chunk);
         addElmToPark(
           this,
-          chunk.id,
+          chunk,
           ...createBusElm(chunk.title, chunk.type === "bus" ? "blue" : "red"),
-          addMarkerToMap,
-          chunk.lngLat,
-          chunk.course
+          addMarkerToMap
         );
       }
+    });
+  },
+  addData(data, addMarkerToMap) {
+    data.forEach((chunk) => {
+      addToPark(this, chunk);
+      addElmToPark(
+        this,
+        chunk,
+        ...createBusElm(chunk.title, chunk.type === "bus" ? "blue" : "red"),
+        addMarkerToMap
+      );
     });
   },
   removeId(id) {
@@ -39,7 +48,7 @@ export const park = {
     return this.busElmsById[id].busElm;
   },
   getLngLat(id) {
-    return this.pathById[id].curLngLat;
+    return this.pathById[id].cur;
   },
   pathByIdToStr() {
     return JSON.stringify(this.pathById, null, 2);
@@ -58,28 +67,34 @@ function _removeId($, id) {
   $.ids = $.ids.filter((i) => i !== id);
 }
 
-function updatePark($, { id, lngLat }) {
+function updatePark($, chunk) {
   console.log("update park");
+  const { id } = chunk;
   const path = $.pathById[id];
-  if (path.curLngLat[0] === lngLat[0] && path.curLngLat[1] === lngLat[1]) {
-    return;
-  }
-  path.prevLngLat = path.curLngLat;
-  path.curLngLat = lngLat;
+  if (!chunk.cur) return; // 'marker Freezed' strategy #6
+
+  path.prev = path.cur; // 'marker New Pos' strategy #1
+  path.cur = chunk.cur;
   _setStepSize($, id, STEPS);
   //rotate markers in  moving direction
-  _setCourse($, id, math.calcCourse($.pathById[id].prevLngLat, lngLat));
+  _setCourse($, id, math.calcCourse(path.prev, chunk.cur));
 }
 
 function addToPark($, chunk) {
-  const { id } = chunk;
+  const { id, cur, type, title } = chunk;
   $.ids.push(id);
-  $.pathById[id] = { prevLngLat: chunk.lngLat, curLngLat: chunk.lngLat };
-  $.busElmsById[id] = { title: chunk.title, type: chunk.type };
+  $.busElmsById[id] = { title, type };
+  $.pathById[id] = { cur };
+  if (!chunk.prev) {
+    // 'marker addAllNew' strategy #3
+  } else {
+    // 'marker addNew' strategy #4
+    $.pathById[id] = { ...$.pathById[id], prev: chunk.prev };
+  }
   $.pathById[id].stepSize = [0, 0];
 }
 
-function createBusElm(title, color) {
+export function createBusElm(title, color) {
   const template = document.querySelector("#bus");
   const busElm = template.content.firstElementChild.cloneNode(true);
   const polyElm = busElm.querySelector("polygon");
@@ -91,25 +106,28 @@ function createBusElm(title, color) {
   return [busElm, polyElm];
 }
 
-function addElmToPark($, id, busElm, polyElm, addMarkerToMap, lngLat, course) {
+function addElmToPark($, chunk, busElm, polyElm, addMarkerToMap) {
   // console.log("addToPark", busElm);
+  const { id, cur, course } = chunk;
   $.busElmsById[id] = {
     ...$.busElmsById[id],
     busElm: busElm,
     polyElm: polyElm,
   };
+  // const old = prev || cur;
   _setCourse($, id, course);
-  $.markersById[id] = addMarkerToMap(busElm, lngLat);
+  // _setCourse($, id, math.calcCourse(old, cur));
+  $.markersById[id] = addMarkerToMap(busElm, cur);
   // console.log($.busElmsById);
   return id;
 }
 
 // function updateBusPos(id, newLngLat) {
-//   const oldLngLat = pathById[id].prevLngLat;
+//   const oldLngLat = pathById[id].prev;
 //   if (!newLngLat) {
 //     const newPos = incLngLat(oldLngLat, [-0.01, 0]);
 
-//     pathById[id].curLngLat = newPos;
+//     pathById[id].cur = newPos;
 //     console.log("newPos", newPos);
 //     _setCourse(id, calcCourse(oldLngLat, newPos));
 //     return id;
@@ -119,24 +137,24 @@ function addElmToPark($, id, busElm, polyElm, addMarkerToMap, lngLat, course) {
 // }
 
 function _setStepSize($, id, steps) {
-  const prev = $.pathById[id].prevLngLat;
-  const cur = $.pathById[id].curLngLat;
+  const prev = $.pathById[id].prev;
+  const cur = $.pathById[id].cur;
   // console.log($);
   const vector = math.makeVector(prev, cur);
   $.pathById[id].stepSize = math.calcStepSize(vector, steps);
   return id;
 }
 
-// take marker by id and increase its curLngLat by one step
+// take marker by id and increase its cur by one step
 function _makeStep($, id) {
-  const prev = $.pathById[id].prevLngLat;
-  const cur = $.pathById[id].curLngLat;
+  const prev = $.pathById[id].prev;
+  const cur = $.pathById[id].cur;
   const stepSize = $.pathById[id].stepSize;
   if (math.isCoordinatesEqual(prev, cur, stepSize)) {
     return cur;
   }
   const newCoordinates = math.incLngLat(prev, stepSize);
-  $.pathById[id].prevLngLat = newCoordinates;
+  $.pathById[id].prev = newCoordinates;
   //   console.log(`${id.slice(0, 2)}`, newCoordinates);
   return newCoordinates;
 }
@@ -151,10 +169,10 @@ function _setCourse($, id, angle) {
   //   console.log(polyElm);
 }
 
-// park.setData([{ id: "1234", title: "4G", type: "bus", lngLat: vilniusLngLat }]);
+// park.setData([{ id: "1234", title: "4G", type: "bus", cur: vilniusLngLat }]);
 // console.log(park.pathByIdToStr());
 // park.setData([
-//   { id: "1234", lngLat: math.incLngLat(vilniusLngLat, [-0.05, 0.05]) },
+//   { id: "1234", cur: math.incLngLat(vilniusLngLat, [-0.05, 0.05]) },
 // ]);
 // console.log(park.pathByIdToStr());
 // console.log(park.busElmsById);
