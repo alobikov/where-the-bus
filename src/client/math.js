@@ -30,3 +30,17 @@ export function isCoordinatesEqual(prev, cur, stepSizeXY) {
     ? true
     : false;
 }
+
+const convert = (float) => Math.round(float * 1000000);
+export function convertToInt({ _ne, _sw }) {
+  return [
+    [convert(_sw.lng), convert(_sw.lat)],
+    [convert(_ne.lng), convert(_ne.lat)],
+  ];
+}
+
+const convertToString = (n) =>
+  parseFloat(String(n).slice(0, 2) + "." + String(n).slice(2));
+export function intPosToDeg([lng, lat]) {
+  return [convertToString(lng), convertToString(lat)];
+}

@@ -13,12 +13,16 @@ export function onMapBoundsChange({ emit, socket, map, addMarker }) {
   var timeout; // debounce user action for zoom or pane
   map.on("resize", () => {
     clearTimeout(timeout);
-    timeout = setTimeout(() => socket.emit(emit, map.getBounds()), 1000);
+    timeout = setTimeout(
+      () => socket.emit(emit, math.convertToInt(map.getBounds())),
+      1000
+    );
   });
-  map.on("dragend", () => socket.emit(emit, map.getBounds()));
+  map.on("dragend", () =>
+    socket.emit(emit, math.convertToInt(map.getBounds()))
+  );
   map.on("zoomend", () => {
-    socket.emit(emit, map.getBounds());
-    // addMarker(null, map.getBounds()._ne);
+    socket.emit(emit, math.convertToInt(map.getBounds()));
   });
 }
 

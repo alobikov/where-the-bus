@@ -36,7 +36,6 @@ const store = createStore(
       stateSanitizer,
     })
 );
-
 export default store;
 
 function stateSanitizer(state) {

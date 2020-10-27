@@ -4,7 +4,7 @@ import RestApi from "./api/rest_api";
 import io from "socket.io-client";
 
 import "./styles/index.css";
-import { park } from "./park";
+import { convertToInt, intPosToDeg } from "./math";
 import { vilniusLngLat, mapboxToken } from "./config";
 import * as render from "./render";
 import { setStock, allTypeRoutes, selected } from "./stock";
@@ -15,51 +15,48 @@ import {
   updateTrips,
 } from "./helpers";
 import store, { getPosition, removePosition } from "./redux/store";
-import { keepIds } from "./redux/actions";
+import { keepIds, removeTrip } from "./redux/actions";
 
 const rest = new RestApi();
 const socket = io("http://localhost:9001");
+
+console.log("store", store);
 
 function emitSelected(selected) {
   socket.emit("my-selected", selected);
 }
 socket.on("connect", () => {
   console.log("connected");
-  socket.emit("my-bounds", map.getBounds());
+  socket.emit("my-bounds", convertToInt(map.getBounds()));
   socket.emit("my-selected", selected);
 });
 // TODO bounds-request becomes obsolete
 socket.on("bounds-requested", () => {
   console.log("bounds-requested");
-  socket.emit("my-bounds", map.getBounds());
+  socket.emit("my-bounds", convertToInt(map.getBounds()));
 });
-socket.on("message", (data) => console.log(data));
-socket.on("update-trips", (data) => {
-  const newData = JSON.parse(data);
-  const newIds = newData.map((chunk) => chunk.id);
-  const outdatedIds = store
-    .getState()
-    .allIds.filter((n) => !newIds.includes(n));
-  console.log("ids to remove", outdatedIds);
-  outdatedIds.forEach((id) => {
-    store.getState().markersById[id].remove();
-    store.dispatch({ type: "REMOVE_TRIP", id });
-    removePosition(id);
-  });
+socket.on("message", (payload) => console.log(payload));
 
-  console.log("update-trips Ids:", newIds);
-  updateTrips(newData, updateMarkerPosition);
-  // store.dispatch(keepIds(newIds));
-  // park.cleanUp(newData); // remove irrelevant ids
-  // park.setData(newData, addMarker);
-  console.log("update-trips", newData);
-  console.log("==============");
-});
-socket.on("add-trips", (data) => {
-  const newData = JSON.parse(data);
-  console.log("add-trips", data);
-  if (data.length > 0) addNewTrips(newData, addMarker);
-  // park.addData(newData, addMarker);
+socket.on("update-trips", (payload) => {
+  const data = JSON.parse(payload);
+  const newIds = data.map((chunk) => chunk.id);
+  const allIds = store.getState().allIds;
+  // remove outdated trips
+  const outdatedIds = allIds.filter((id) => !newIds.includes(id));
+  console.log("ids to remove", outdatedIds);
+  outdatedIds.forEach((id) => store.dispatch(removeTrip(id)));
+  // update existing trips
+  const updatableIds = allIds.filter((id) => newIds.includes(id));
+  const uTrips = data.filter((chunk) => updatableIds.includes(chunk.id));
+  updateTrips(uTrips, updateMarkerPosition);
+  console.log("updated Ids:", updatableIds);
+  // add new trips
+  const additionalIds = newIds.filter((id) => !updatableIds.includes(id));
+  if (additionalIds.length > 0) {
+    console.log("added Ids:", additionalIds);
+    const aTrips = data.filter((chunk) => additionalIds.includes(chunk.id));
+    addNewTrips(aTrips, addMarker);
+  }
 });
 
 rest.fetchRoutes().then((data) => {
@@ -83,13 +80,17 @@ const map = new mapboxgl.Map({
 
 // function for injection
 function addMarker(busElm, lngLat) {
-  return new mapboxgl.Marker(busElm).setLngLat(lngLat).addTo(map);
+  return new mapboxgl.Marker(busElm).setLngLat(intPosToDeg(lngLat)).addTo(map);
+}
+
+function updateMarkerPosition(id, cur) {
+  store.getState().markersById[id].setLngLat(intPosToDeg(cur));
 }
 
 function animateMarkers(timestamp) {
   store.getState().allIds.forEach((id) => {
     const newCur = makeStep(id);
-    store.getState().markersById[id]?.setLngLat(newCur);
+    store.getState().markersById[id]?.setLngLat(intPosToDeg(newCur));
   });
   requestAnimationFrame(animateMarkers);
 }
@@ -142,10 +143,6 @@ map.on("load", () => {
     }, 700);
   });
 });
-
-function updateMarkerPosition(id, cur) {
-  store.getState().markersById[id].setLngLat(cur);
-}
 
 function removeMarkersFromMap(newIds) {
   let cnt = 0;

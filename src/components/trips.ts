@@ -38,7 +38,7 @@ export class Trips {
 
   toJson() {
     return `[${Object.keys(this.all)
-      .map((key) => this.all[key].toJson(false))
+      .map((key) => this.all[key].toJson())
       .join(",")}]`;
   }
 

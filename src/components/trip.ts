@@ -10,22 +10,14 @@ export default class Trip {
     public cur: [number, number],
     public course: number //course is latched and never reset
   ) {}
-  toJson(isAdd: boolean) {
-    if (isAdd) {
-      return JSON.stringify({
-        id: this.id,
-        title: this.title,
-        type: this.type,
-        cur: this.cur,
-        course: this.course,
-      });
-    } else {
-      return JSON.stringify({
-        id: this.id,
-        cur: this.cur,
-        course: this.course,
-      });
-    }
+  toJson() {
+    return JSON.stringify({
+      id: this.id,
+      title: this.title,
+      type: this.type,
+      cur: this.cur,
+      course: this.course,
+    });
   }
 }
 

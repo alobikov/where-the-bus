@@ -127,7 +127,7 @@ io.on("connect", (socket) => {
   const pollService = PollService.instance(() => {
     apiStops.fetchAll().then((data) => {
       const [oldIds, newIds] = trips.set(data);
-      emitReducedTrips(pollService.getSubscribers, trips, state, false);
+      emitReducedTrips(pollService.getSubscribers, trips, state);
       // console.log("old trips", oldIds);
       // console.log("new trips", newIds);
     });
@@ -137,12 +137,10 @@ io.on("connect", (socket) => {
   //!=====================================================
 
   socket.on("my-bounds", (bounds) => {
+    console.log(bounds);
     state[socket.id] = {
       ...state[socket.id],
-      bounds: [
-        [bounds._sw.lng, bounds._sw.lat],
-        [bounds._ne.lng, bounds._ne.lat],
-      ],
+      bounds,
     };
     emitReducedTrips(() => [socket], trips, state);
     // console.log(`${socket.id} my-bounds`, state);

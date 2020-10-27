@@ -24,24 +24,17 @@ export const emitReducedTrips = (
     const newIds = selectedTrips.map((trip) => trip.id);
     state[socket.id].ids = newIds;
     // find new ids
-    const addedIds = newIds.filter((id) => !oldIds.includes(id));
-    const updatedIds = newIds.filter((id) => oldIds.includes(id));
+    // const addedIds = newIds.filter((id) => !oldIds.includes(id));
+    // const updatedIds = newIds.filter((id) => oldIds.includes(id));
     // convert reduced trips into json and emit them depending on isAdd
-    if (!isAdd && updatedIds.length > 0) {
+    if (newIds.length > 0) {
       console.log(
-        "updated IDS",
-        JSON.stringify(updatedIds),
-        JSON.stringify(updatedIds.map((id) => trips.getById(id).cur))
+        "updated IDS:",
+        JSON.stringify(newIds)
+        // JSON.stringify(newIds.map((id) => trips.getById(id).cur)) //TODO
       );
-      selectedTrips = updatedIds.map((id) => trips.getById(id));
-      const json = selectedTrips.map((trip) => trip.toJson(false)).join(",");
+      const json = selectedTrips.map((trip) => trip.toJson()).join(",");
       socket.emit("update-trips", `[${json}]`);
-    }
-    if (addedIds.length > 0) {
-      console.log("added ids", JSON.stringify(addedIds));
-      selectedTrips = addedIds.map((id) => trips.getById(id));
-      const json = selectedTrips.map((trip) => trip.toJson(true)).join(",");
-      socket.emit("add-trips", `[${json}]`);
     }
   });
 };

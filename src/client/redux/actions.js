@@ -1,3 +1,5 @@
+import store, { removePosition } from "./store";
+
 export const addTrip = (id, title, busType, polyElm) => ({
   type: "ADD_TRIP",
   id,
@@ -24,7 +26,11 @@ export const addMarker = (id, marker) => ({
   marker,
 });
 
-export const removeTrip = (id) => ({
-  type: "REMOVE_TRIP",
-  id,
-});
+export const removeTrip = (id) => {
+  store.getState().markersById[id].remove(); // remove marker from map
+  removePosition(id); // clean position storage
+  return {
+    type: "REMOVE_TRIP",
+    id,
+  };
+};
