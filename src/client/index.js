@@ -1,7 +1,7 @@
 "use strict";
 import mapboxgl from "mapbox-gl"; // or "const mapboxgl = require('mapbox-gl');"
-import RestApi from "./api/rest_api";
 import io from "socket.io-client";
+import RestApi from "./api/rest_api";
 
 import "./styles/index.css";
 import { convertToInt, intPosToDeg } from "./math";

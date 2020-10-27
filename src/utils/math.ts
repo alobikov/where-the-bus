@@ -7,7 +7,6 @@ export function incLngLat(lngLat, stepXY) {
 
 export function calcStepSize(vector, numOfSteps) {
   const result = [vector[0] / numOfSteps, vector[1] / numOfSteps];
-  // console.log(result);
   return result;
 }
 
@@ -21,13 +20,8 @@ export function calcCourse(prevPos: IPos, curPos: IPos) {
   return Math.atan2(...makeVector(prevPos, curPos)) * (180 / Math.PI);
 }
 
-// test vector angle
-// console.log(calcCourse([0, 0], [1, 1]));
-// console.log(calcCourse([0, 0], [-1, -1]));
-
 export function isCoordinatesEqual(prev, cur, stepSizeXY) {
   const [res1, res2] = makeVector(prev, cur);
-  // console.log(Math.abs(res1), Math.abs(res2));
   return Math.abs(res1) < Math.abs(stepSizeXY[0]) &&
     Math.abs(res2) < Math.abs(stepSizeXY[1])
     ? true
@@ -46,12 +40,6 @@ export const isPntInBounds = (lngLat: IPos, bounds: IVec) => {
   return x > x1 && x < x2 && y > y1 && y < y2;
 };
 
-// let lngLat = [1,5]
-// let bounds = [[0,0],[10,8]]
-// console.log(isPntInBounds(lngLat, bounds))
-// lngLat = [2,5]
-// bounds = [[0,0],[1,8]]
-// console.log(isPntInBounds(lngLat, bounds))
 export const convertToUptime = (sec): string => {
   const days = Math.floor(sec / 86400);
   const hours = Math.floor((sec / (60 * 60)) % 24);

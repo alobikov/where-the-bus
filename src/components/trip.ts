@@ -1,6 +1,3 @@
-import { minStep } from "../config";
-import { isCoordinatesEqual } from "../utils/math";
-
 export default class Trip {
   constructor(
     public id: string,
@@ -15,26 +12,9 @@ export default class Trip {
       id: this.id,
       title: this.title,
       type: this.type,
-      prev: this.prev, // by adding this prop I want to achieve addition of moving markers to the map
+      prev: this.prev, // this prop helps at client side to add moving markers to the map
       cur: this.cur,
       course: this.course,
     });
   }
 }
-
-// toJson(withPrev: boolean = true) {
-//   return withPrev
-//     ? JSON.stringify({
-//         id: this.id,
-//         type: this.type,
-//         title: this.title,
-//         lngLat: this.cur,
-//         prevLngLat: this.prev,
-//       })
-//     : JSON.stringify({
-//         id: this.id,
-//         type: this.type,
-//         title: this.title,
-//         lngLat: this.cur,
-//       });
-// }

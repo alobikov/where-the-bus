@@ -4,7 +4,6 @@ export function incLngLat(lngLat, stepXY) {
 
 export function calcStepSize(vector, numOfSteps) {
   const result = [vector[0] / numOfSteps, vector[1] / numOfSteps];
-  // console.log(result);
   return result;
 }
 
@@ -24,7 +23,6 @@ export function calcCourse(prevPos, curPos) {
 
 export function isCoordinatesEqual(prev, cur, stepSizeXY) {
   const [res1, res2] = makeVector(prev, cur);
-  // console.log(Math.abs(res1), Math.abs(res2));
   return Math.abs(res1) < Math.abs(stepSizeXY[0]) &&
     Math.abs(res2) < Math.abs(stepSizeXY[1])
     ? true

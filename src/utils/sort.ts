@@ -1,3 +1,4 @@
+/// sort list of routs before sending it to client
 export const sort = (lst: string[]): string[] => {
   // first convert strings to float numbers where 3G becomes 3.5
   const result = lst.map((item) => {

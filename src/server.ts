@@ -7,7 +7,7 @@ import busRoutes from "./components/bus_routes";
 import trips from "./components/trips";
 import apiStops from "./services/stops_lt";
 import PollService from "./services/poll_service";
-import { emitReducedTrips } from "./helpers/emitters";
+import { emitReducedTrips } from "./components/emitter";
 import * as config from "./config";
 import { state } from "./components/state";
 import { stats } from "./components/stats";
@@ -42,8 +42,7 @@ setInterval(() => {
   // console.log(`trips: ${stats.tripsAmount}; clients: ${stats.clientsAmount}`);
 }, 10000);
 
-const server = http.createServer((req, res) => {
-  console.log(req.url);
+const server: http.Server = http.createServer((req, res) => {
   switch (true) {
     case /\/routes/.test(req.url): {
       res.setHeader("Access-Control-Allow-Origin", "*");
@@ -111,19 +110,8 @@ const io: socketIO.Server = socketIO(server);
 io.on("connect", (socket) => {
   console.log("*** Socket.io user connected ***", socket.id);
   socket.emit("bounds-requested");
+
   //! ******************** POLLING ***********************
-  // const pollDataProvider = new Interval(() => {
-  //   fetchAndUpdateTrips();
-  //   emitReducedTrips(socket, trips, state);
-  // }, 5000);
-  // pollDataProvider.start();
-  // if (runDuration !== 0) {
-  //   setTimeout(() => {
-  //     pollDataProvider.stop();
-  //     console.log("Polling of Data Provider stopped!");
-  //   }, 3600 * 1000 * runDuration); //hours
-  // }
-  //! NEW USE CASE
   const pollService = PollService.instance(() => {
     apiStops.fetchAll().then((data) => {
       const [oldIds, newIds] = trips.set(data);
@@ -133,11 +121,9 @@ io.on("connect", (socket) => {
     });
   });
   pollService.subscribe(socket);
-
   //!=====================================================
 
   socket.on("my-bounds", (bounds) => {
-    console.log(bounds);
     state[socket.id] = {
       ...state[socket.id],
       bounds,

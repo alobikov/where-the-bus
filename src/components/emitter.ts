@@ -1,14 +1,13 @@
 import { Socket } from "socket.io";
 import { IStateRecord } from "../types/types";
-import { Trips } from "../components/trips";
+import { Trips } from "./trips";
 
 // through all sockets obtained by callback
 // emit trips bounded to client window and only for routes selected by client
 export const emitReducedTrips = (
   getSockets: () => Socket[],
   trips: Trips,
-  state: Record<string, IStateRecord>,
-  isAdd: boolean = false
+  state: Record<string, IStateRecord>
 ) => {
   const sockets = getSockets();
   sockets.forEach((socket) => {
@@ -20,19 +19,13 @@ export const emitReducedTrips = (
       boundedTrips,
       state[socket.id].selected
     );
-    // save trip ids in the state
+    // find ids of bounded and selected trips
     const newIds = selectedTrips.map((trip) => trip.id);
+    // save ids in the client's state
     state[socket.id].ids = newIds;
-    // find new ids
-    // const addedIds = newIds.filter((id) => !oldIds.includes(id));
-    // const updatedIds = newIds.filter((id) => oldIds.includes(id));
-    // convert reduced trips into json and emit them depending on isAdd
+
     if (newIds.length > 0) {
-      console.log(
-        "updated IDS:",
-        JSON.stringify(newIds)
-        // JSON.stringify(newIds.map((id) => trips.getById(id).cur)) //TODO
-      );
+      // convert reduced trips into json and emit them
       const json = selectedTrips.map((trip) => trip.toJson()).join(",");
       socket.emit("update-trips", `[${json}]`);
     }
