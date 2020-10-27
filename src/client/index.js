@@ -5,7 +5,7 @@ import RestApi from "./api/rest_api";
 
 import "./styles/index.css";
 import { convertToInt, intPosToDeg } from "./math";
-import { vilniusLngLat, mapboxToken } from "./config";
+import { vilniusLngLat, mapboxToken, socketUri } from "./config";
 import * as render from "./render";
 import { setStock, allTypeRoutes, selected } from "./stock";
 import {
@@ -18,7 +18,7 @@ import store, { getPosition, removePosition } from "./redux/store";
 import { keepIds, removeTrip } from "./redux/actions";
 
 const rest = new RestApi();
-const socket = io("http://localhost:9001");
+const socket = io(socketUri);
 
 function emitSelected(selected) {
   socket.emit("my-selected", selected);
