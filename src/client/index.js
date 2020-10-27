@@ -20,8 +20,6 @@ import { keepIds, removeTrip } from "./redux/actions";
 const rest = new RestApi();
 const socket = io("http://localhost:9001");
 
-console.log("store", store);
-
 function emitSelected(selected) {
   socket.emit("my-selected", selected);
 }

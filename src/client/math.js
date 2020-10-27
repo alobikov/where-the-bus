@@ -44,3 +44,10 @@ const convertToString = (n) =>
 export function intPosToDeg([lng, lat]) {
   return [convertToString(lng), convertToString(lat)];
 }
+
+export function isBigJump(prev, cur, jumpSizeLimit) {
+  const [x, y] = makeVector(prev, cur);
+  const length = Math.sqrt(x * x + y * y);
+  length > jumpSizeLimit && console.log(length);
+  return length > jumpSizeLimit;
+}

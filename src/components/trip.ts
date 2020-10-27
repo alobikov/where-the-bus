@@ -15,6 +15,7 @@ export default class Trip {
       id: this.id,
       title: this.title,
       type: this.type,
+      prev: this.prev, // by adding this prop I want to achieve addition of moving markers to the map
       cur: this.cur,
       course: this.course,
     });
