@@ -33,12 +33,25 @@ export function updateTrips(data, updateMarkerPosOnMap) {
     const { id, cur, course } = tripReceived;
     const [prevStored, curStored, stepStored] = getPosition(id);
     if (curStored[0] !== cur[0] || curStored[1] !== cur[1]) {
-      if (math.isBigJump(curStored, cur, 2000)) {
+      if (math.jumpSize(curStored, cur) > 2000) {
         setPosition(id, cur, cur, [0, 0]); // set jumping cursor straight to position
+        console.log(
+          "jump",
+          id,
+          store.getState().busElmsById[id].title,
+          math.jumpSize(curStored, cur)
+        );
       } else {
-        const vector = math.makeVector(curStored, cur);
-        const stepSize = math.calcStepSize(vector, STEPS);
-        setPosition(id, curStored, cur, stepSize);
+        if (math.isCoordinatesEqual(prevStored, curStored, stepStored)) {
+          // animation not complete, add speed to animation
+          const stepSize = calcStepSize(prevStored, cur);
+          setPosition(id, prevStored, cur, stepSize);
+          console.log("accelerating");
+        } else {
+          const stepSize = calcStepSize(curStored, cur);
+          setPosition(id, curStored, cur, stepSize);
+        }
+
         // console.log("step size", stepSize);
       }
     }
@@ -54,11 +67,13 @@ export function addNewTrips(data, addMarkerToMap) {
     let [busElm, polyElm] = createBusElm(title, color);
     store.dispatch(addTrip(id, title, type, polyElm));
     store.dispatch(setCourse(id, course, "add_new"));
-    // now add path
-    const vector = math.makeVector(prev, cur);
-    const stepSize = math.calcStepSize(vector, STEPS);
-    // console.log("step size when adding new", stepSize);
-    setPosition(id, prev, cur, stepSize);
+    // now save position but take care not to make a jump
+    if (math.jumpSize(prev, cur) > 2000) {
+      setPosition(id, cur, cur, [0, 0]); // set jumping cursor straight to position
+    } else {
+      const stepSize = calcStepSize(prev, cur);
+      setPosition(id, prev, cur, stepSize);
+    }
     // now we can add marker
     const marker = addMarkerToMap(busElm, cur);
     // store marker in state
@@ -79,8 +94,7 @@ export function makeStep(id) {
   return newCoordinates;
 }
 
-function calcStepSize(id, steps) {
-  const [prev, cur, stepSize] = getPosition(id);
+function calcStepSize(prev, cur) {
   const vector = math.makeVector(prev, cur);
-  return math.calcStepSize(vector, steps);
+  return math.calcStepSize(vector, STEPS);
 }
