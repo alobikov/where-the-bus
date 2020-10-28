@@ -17,7 +17,7 @@ import {
 import store from "./redux/store";
 import { removeTrip } from "./redux/actions";
 
-const rest = new RestApi();
+const rest = new RestApi("__BASE_URL__");
 
 function emitSelectedCb(selected) {
   socket.emit("my-selected", selected);

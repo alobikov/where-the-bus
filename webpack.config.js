@@ -5,9 +5,15 @@ const FaviconsWebpackPlugin = require("favicons-webpack-plugin");
 const webpack = require("webpack");
 
 module.exports = (env, argv) => {
-  const setupPort = () => (argv.mode === "development" ? "9001" : "0");
-  const socketPort = setupPort();
-  console.log("socketPort", socketPort);
+  let socketPort = "0";
+  let baseUrl = "188.166.165.124";
+  if (argv.mode === "development") {
+    socketPort = "9001";
+    baseUrl = "localhost:9001";
+  }
+
+  console.log("socketPort:", socketPort);
+  console.log("base url:", baseUrl);
 
   return {
     entry: "./src/client/index.js",
@@ -34,6 +40,7 @@ module.exports = (env, argv) => {
       }),
       new webpack.DefinePlugin({
         __SOCKET_PORT__: socketPort,
+        __BASE_URL__: baseUrl,
       }),
     ],
     devtool: "inline-source-map",

@@ -5,13 +5,17 @@
         "esModuleInterop": true,
         "module": "commonjs",
         "allowJs": true,
-        "target": "ES6"
+        "target": "ES6",
+        "noImplicitAny": false,
+        "removeComments": true,
+        "preserveConstEnums": true,
+        "sourceMap": true
     },
     "include": [
         "./src/**/*.ts",
         "src/server.ts"
     ],
     "exclude": [
-        "./src/client"
+        "./src/client",
     ]
 }

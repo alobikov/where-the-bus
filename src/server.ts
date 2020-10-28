@@ -13,7 +13,7 @@ import { state } from "./components/state";
 import { stats } from "./components/stats";
 import { convertToUptime } from "./utils/math";
 import { IBusRoutes } from "./types/types";
-import { apiToken } from "../.apiToken";
+import { apiToken } from "./apiToken";
 
 const runDuration = parseFloat(process.env.RUN_DURATION) || config.runDuration; //  default - forever
 const port = parseInt(process.env.PORT) || config.port;

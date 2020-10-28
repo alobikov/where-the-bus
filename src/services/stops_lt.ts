@@ -17,7 +17,7 @@ export const mockAll = (): IBusRoutes => {
 async function fetchAll() {
   const response = await axios("https://www.stops.lt/vilnius/gps_full.txt");
   const byLines: string[] = response.data.split("\n");
-  const data = [];
+  const data: any = [];
   byLines.forEach((line: string) => {
     const [type, title, id, , lng, lat, rest] = line.split(",");
     if (id === "ReisoID" || id === "" || !id) {
