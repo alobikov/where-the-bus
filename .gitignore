@@ -1,4 +1,4 @@
 node_modules
 dist
 public
-apiToken.js
+apiToken.ts
