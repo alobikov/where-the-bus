@@ -10,7 +10,9 @@ export const emitReducedTrips = (
   state: Record<string, IStateRecord>
 ) => {
   const sockets = getSockets();
+  // console.log(state);
   sockets.forEach((socket) => {
+    if (Object.keys(state[socket.id]).length === 0) return;
     const oldIds = state[socket.id].ids || [];
     // filter bounded trips
     const boundedTrips = trips.getBounded(state[socket.id].bounds);

@@ -18,6 +18,14 @@ export default class RestApi {
     }
   }
 
+  fetchToken() {
+    try {
+      return fetch(this.url + "/token").then((response) => response.json());
+    } catch (error) {
+      console.error(`Problem fetching token from ${this.url}`, error);
+    }
+  }
+
   fetchTrips() {
     try {
       return fetch(this.url + "/trips").then((response) => response.json());

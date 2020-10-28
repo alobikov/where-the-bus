@@ -18,8 +18,6 @@ const _showIds = () => {
 
 const currierList = (carrier = "bus", emitSelected) => {
   routes.innerHTML = "";
-  console.log("hey from makeList", carrier);
-  //   console.log(selection[carrier]);
   allTypeRoutes[carrier].forEach((title) => {
     const btn = document.createElement("div");
     btn.classList.add(carrier, "bus-button");

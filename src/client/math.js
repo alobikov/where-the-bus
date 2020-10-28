@@ -46,6 +46,6 @@ export function intPosToDeg([lng, lat]) {
 export function isBigJump(prev, cur, jumpSizeLimit) {
   const [x, y] = makeVector(prev, cur);
   const length = Math.sqrt(x * x + y * y);
-  length > jumpSizeLimit && console.log(length);
+  // length > jumpSizeLimit && console.log(length);
   return length > jumpSizeLimit;
 }

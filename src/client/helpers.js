@@ -57,7 +57,7 @@ export function addNewTrips(data, addMarkerToMap) {
     // now add path
     const vector = math.makeVector(prev, cur);
     const stepSize = math.calcStepSize(vector, STEPS);
-    console.log("step size when adding new", stepSize);
+    // console.log("step size when adding new", stepSize);
     setPosition(id, prev, cur, stepSize);
     // now we can add marker
     const marker = addMarkerToMap(busElm, cur);

@@ -13,6 +13,7 @@ import { state } from "./components/state";
 import { stats } from "./components/stats";
 import { convertToUptime } from "./utils/math";
 import { IBusRoutes } from "./types/types";
+import { apiToken } from "../.apiToken";
 
 const runDuration = parseFloat(process.env.RUN_DURATION) || config.runDuration; //  default - forever
 const port = parseInt(process.env.PORT) || config.port;
@@ -64,6 +65,13 @@ const server: http.Server = http.createServer((req, res) => {
       res.end();
       break;
     }
+    case /\/token/.test(req.url): {
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Content-Type", "application/json");
+      res.write(JSON.stringify({ token: apiToken }));
+      res.end();
+      break;
+    }
     case /\/assets\/.+(xml|svg)/.test(req.url): {
       fs.readFile(path.resolve("public", req.url.slice(1))).then((contents) => {
         res.setHeader("Access-Control-Allow-Origin", "*");
@@ -109,6 +117,7 @@ const io: socketIO.Server = socketIO(server);
 
 io.on("connect", (socket) => {
   console.log("*** Socket.io user connected ***", socket.id);
+  state[socket.id] = {}; // create empty record for user in state
   socket.emit("bounds-requested");
 
   //! ******************** POLLING ***********************

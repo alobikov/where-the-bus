@@ -6,7 +6,6 @@ if (port !== 0) {
 }
 
 export { socketUri };
-export const vilniusLngLat = [25.2832, 54.675528];
+export const vilniusLngLat = [25.291478, 54.686363];
+export const mapZoom = 15;
 export const STEPS = 500;
-export const mapboxToken =
-  "pk.eyJ1IjoiYWxvYmlrb3YiLCJhIjoiY2tnMmR4cDFhMGdxcDJ4cGFoYTN6OGZ5NiJ9.RPGbumq9AG8XO4yWV4U9Dw";
