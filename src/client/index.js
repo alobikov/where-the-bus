@@ -3,7 +3,6 @@ import mapboxgl from "mapbox-gl"; // or "const mapboxgl = require('mapbox-gl');"
 import io from "socket.io-client";
 import "./styles/index.css";
 import RestApi from "./api/rest_api";
-console.log("iam there");
 import { convertToInt, intPosToDeg } from "./math";
 import { vilniusLngLat, socketUri, mapZoom } from "./config";
 import * as render from "./render";
@@ -18,20 +17,20 @@ import store from "./redux/store";
 import { removeTrip } from "./redux/actions";
 
 const rest = new RestApi(__BASE_URL__);
+const socket = io(socketUri);
 
-function emitSelectedCb(selected) {
+function emitSelected(selected) {
   socket.emit("my-selected", selected);
 }
 
 rest.fetchRoutes().then((data) => {
   // console.log("fetchRoutes data:", data);
   setStock(data);
-  render.currierList("bus", emitSelectedCb);
+  render.currierList("bus", emitSelected);
 });
 
 rest.fetchToken().then(({ token }) => {
   mapboxgl.accessToken = token;
-  console.log(token);
   const map = new mapboxgl.Map({
     container: "map",
     style: "mapbox://styles/mapbox/streets-v11", // stylesheet location
@@ -52,7 +51,6 @@ function animateMarkers(timestamp) {
 
 function initMapEvents(map) {
   map.on("load", () => {
-    console.log("map loaded");
     requestAnimationFrame(animateMarkers);
     // on mapDidMount add list of bus (by default) route selection buttons to the screen
     // render.currierList();
@@ -67,8 +65,6 @@ function initMapEvents(map) {
     const filters = document.getElementById("filters");
     filters.addEventListener("click", (e) => {
       render.filtered(e.target.name, carrier.value, emitSelected);
-      console.log("selected bus", selected.bus);
-      console.log("selected tbus", selected.tbus);
       emitSelected(selected);
     });
     // handle: slider open
@@ -78,7 +74,6 @@ function initMapEvents(map) {
     const sliderBtn = document.getElementById("slider-show-btn");
     const filtersSlider = document.getElementById("filters-slider");
     sliderBtn.addEventListener("click", () => {
-      console.log("open");
       sliderBtn.classList.add("animate__animated", "animate__fadeOut");
       filtersSlider.style.display = "block";
       filtersSlider.classList.add("animate__animated", "animate__slideInDown");
@@ -99,6 +94,13 @@ function initMapEvents(map) {
         sliderBtn.classList.add("animate__animated", "animate__fadeIn");
       }, 700);
     });
+    // handle map zoom
+    const zoomControl = document.querySelector(".zoom-control");
+    zoomControl.addEventListener("click", (event) => {
+      console.log(event.target.dataset.action);
+      if (event.target.dataset.action === "in") map.zoomIn();
+      else if (event.target.dataset.action === "out") map.zoomOut();
+    });
   });
 }
 
@@ -113,7 +115,6 @@ function initSocketIo(map) {
     store.getState().markersById[id].setLngLat(intPosToDeg(cur));
   }
 
-  const socket = io(socketUri);
   onMapBoundsChange({ emit: "my-bounds", socket, map, addMarker });
   socket.on("connect", () => {
     // console.log("connected");

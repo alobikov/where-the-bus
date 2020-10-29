@@ -14,6 +14,10 @@
 
 <body>
     <div id='map'></div>
+    <div class="zoom-control">
+        <button data-action="in" id="zoomin">+</button>
+        <button data-action="out" id="zoomout" style="font-weight:bold">&minus;</button>
+    </div>
     <div class="slider-show-container map-overlay">
         <div id="slider-show-btn">
             <label>Filters</label>
@@ -39,6 +43,7 @@
             </div>
         </div>
     </div>
+
     <template id="bus">
         <div class="bus">
             <svg width="22" height="22">

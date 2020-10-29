@@ -2,14 +2,13 @@ import store, {
   setPosition,
   getPosition,
   setPositionPrev,
-  setPositionStepSize,
 } from "./redux/store";
 import { addTrip, addMarker, setCourse, removeTrip } from "./redux/actions";
 import { createBusElm } from "./park";
-import { vilniusLngLat, STEPS } from "./config";
+import { STEPS } from "./config";
 import * as math from "./math";
 
-export function onMapBoundsChange({ emit, socket, map, addMarker }) {
+export function onMapBoundsChange({ emit, socket, map }) {
   var timeout; // debounce user action for zoom or pane
   map.on("resize", () => {
     clearTimeout(timeout);
@@ -25,8 +24,6 @@ export function onMapBoundsChange({ emit, socket, map, addMarker }) {
     socket.emit(emit, math.convertToInt(map.getBounds()));
   });
 }
-
-const stepSize = (x, y) => [x, y];
 
 export function updateTrips(data, updateMarkerPosOnMap) {
   data.forEach((tripReceived) => {

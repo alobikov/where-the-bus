@@ -9,7 +9,7 @@ module.exports = (env, argv) => {
   let baseUrl = '"wheremybus.info"';
   if (argv.mode === "development") {
     socketPort = "9001";
-    baseUrl = '"localhost:9001"';
+    baseUrl = '"http://localhost:9001"';
   }
 
   console.log("socket.io port:", socketPort);
