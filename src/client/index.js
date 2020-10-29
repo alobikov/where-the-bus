@@ -1,9 +1,9 @@
 "use strict";
 import mapboxgl from "mapbox-gl"; // or "const mapboxgl = require('mapbox-gl');"
 import io from "socket.io-client";
-import RestApi from "./api/rest_api";
-
 import "./styles/index.css";
+import RestApi from "./api/rest_api";
+console.log("iam there");
 import { convertToInt, intPosToDeg } from "./math";
 import { vilniusLngLat, socketUri, mapZoom } from "./config";
 import * as render from "./render";
@@ -17,7 +17,7 @@ import {
 import store from "./redux/store";
 import { removeTrip } from "./redux/actions";
 
-const rest = new RestApi("__BASE_URL__");
+const rest = new RestApi(__BASE_URL__);
 
 function emitSelectedCb(selected) {
   socket.emit("my-selected", selected);
@@ -31,6 +31,7 @@ rest.fetchRoutes().then((data) => {
 
 rest.fetchToken().then(({ token }) => {
   mapboxgl.accessToken = token;
+  console.log(token);
   const map = new mapboxgl.Map({
     container: "map",
     style: "mapbox://styles/mapbox/streets-v11", // stylesheet location

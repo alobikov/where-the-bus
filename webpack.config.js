@@ -6,14 +6,14 @@ const webpack = require("webpack");
 
 module.exports = (env, argv) => {
   let socketPort = "0";
-  let baseUrl = "wheremybus.info";
+  let baseUrl = '"wheremybus.info"';
   if (argv.mode === "development") {
     socketPort = "9001";
-    baseUrl = "localhost:9001";
+    baseUrl = '"localhost:9001"';
   }
 
-  console.log("socketPort:", socketPort);
-  console.log("base url:", baseUrl);
+  console.log("socket.io port:", socketPort);
+  console.log("rest API base url:", baseUrl);
 
   return {
     entry: "./src/client/index.js",
@@ -40,6 +40,8 @@ module.exports = (env, argv) => {
       }),
       new webpack.DefinePlugin({
         __SOCKET_PORT__: socketPort,
+      }),
+      new webpack.DefinePlugin({
         __BASE_URL__: baseUrl,
       }),
     ],

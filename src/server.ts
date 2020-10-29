@@ -44,6 +44,7 @@ setInterval(() => {
 }, 10000);
 
 const server: http.Server = http.createServer((req, res) => {
+  console.log(req.url);
   switch (true) {
     case /\/routes/.test(req.url): {
       res.setHeader("Access-Control-Allow-Origin", "*");
