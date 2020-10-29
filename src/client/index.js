@@ -51,6 +51,7 @@ function animateMarkers(timestamp) {
 
 function initMapEvents(map) {
   map.on("load", () => {
+    console.log("map loaded");
     requestAnimationFrame(animateMarkers);
     // on mapDidMount add list of bus (by default) route selection buttons to the screen
     // render.currierList();

@@ -1,20 +1,6 @@
 import { selected, allTypeRoutes } from "./stock";
-import { park } from "./park";
 
 var routes = document.getElementById("routes");
-
-const _showIds = () => {
-  routes.innerHTML = "";
-  const lst = document.createElement("div");
-  lst.textContent = "ids will be shown here";
-  lst.style.writingMode = "horizontal-tb";
-  const ids = Object.keys(park.markersById);
-  const html = ids
-    .map((id) => `<div>${id}: ${park.busElmsById[id].title}</div>`)
-    .join(" ");
-  lst.innerHTML = html;
-  routes.appendChild(lst);
-};
 
 const currierList = (carrier = "bus", emitSelected) => {
   routes.innerHTML = "";
@@ -39,14 +25,10 @@ const currierList = (carrier = "bus", emitSelected) => {
   });
 };
 
-/// filter: 'all' | 'none'; comes from button name attribute
+/// filter: 'all' | 'none'; assigned as button name attribute
 const filtered = (filter, carrier, emitSelected) => {
   if (filter === "none") selected[carrier] = [];
   else if (filter === "all") selected[carrier] = [...allTypeRoutes[carrier]];
-  else if (filter === "markers") {
-    _showIds();
-    return;
-  }
   // refresh display
   currierList(carrier, emitSelected);
 };

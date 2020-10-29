@@ -6,7 +6,7 @@ const webpack = require("webpack");
 
 module.exports = (env, argv) => {
   let socketPort = "0";
-  let baseUrl = "188.166.165.124";
+  let baseUrl = "wheremybus.info";
   if (argv.mode === "development") {
     socketPort = "9001";
     baseUrl = "localhost:9001";
