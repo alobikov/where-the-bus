@@ -1,4 +1,4 @@
-###Where My Bus
+### Where My Bus
 
 Recently I have looked at the Trafi mobile app. Among other features there was one which caught my eye. Trafi shows animated movement of public transport markers on the map. I decided to implement this feature for the web client and at the same time to test & try Mapbox online map service and its API. The scope of the new project was limited by my home town. After the short search I found only one source of real time positioning information for city buses and trolleybuses www.stops.lt/vilnius/gps_full.txt. The problem with this API is the amount of data received on each request 15-20 kb. I planned to poll for data at a 5 seconds interval. While the size of data transfer is not an issue for web clients, it is quite sensitive for mobile clients.
 It was decided to put “the shunter in the middle”. That is backed service which takes data from stops.lt and filters out all data which is beyond client map. After deeper design of roles per character the backend took a lot under its hood:
