@@ -14,32 +14,34 @@
 
 <body>
     <div id='map'></div>
-    <div class="zoom-control">
-        <button data-action="in" id="zoomin">+</button>
-        <button data-action="out" id="zoomout" style="font-weight:bold">&minus;</button>
-    </div>
-    <div class="slider-show-container map-overlay">
-        <div id="slider-show-btn">
-            <label>Filters</label>
-            <img src="./assets/down.svg" alt="chevron down icon" width="24" height="18">
+    <div class="controls-overlay" style="display:none">
+        <div class="zoom-control">
+            <button data-action="in" id="zoomin">+</button>
+            <button data-action="out" id="zoomout" style="font-weight:bold">&minus;</button>
         </div>
-    </div>
-    <div id="filters-slider" class="map-overlay">
-        <div class="map-overlay-inner">
-            <label>Carrier type</label>
-            <select id="carrier" name="carrier">
-                <option value="bus">Bus</option>
-                <option value="tbus">Trolleybus</option>
-            </select>
-            <label>Routes</label>
-            <div id="filters" style="display:inline-block">
-                <button name="all" type="button">Select All</button>
-                <button name="none" type="button">Select None</button>
+        <div class="slider-show-container map-overlay">
+            <div id="slider-show-btn">
+                <label>Filters</label>
+                <img src="./assets/down.svg" alt="chevron down icon" width="24" height="18">
             </div>
-            <div id="routes"></div>
-            <hr style="height:2px;margin:10px;border-width:0;color:gray;background-color:gray">
-            <div id="slider-close" style='text-align:center;'>
-                <img src="./assets/up.svg" alt="chevron up icon" width="24" height="18">
+        </div>
+        <div id="filters-slider" class="map-overlay">
+            <div class="map-overlay-inner">
+                <label>Carrier type</label>
+                <select id="carrier" name="carrier">
+                    <option value="bus">Bus</option>
+                    <option value="tbus">Trolleybus</option>
+                </select>
+                <label>Routes</label>
+                <div id="filters" style="display:inline-block">
+                    <button name="all" type="button">Select All</button>
+                    <button name="none" type="button">Select None</button>
+                </div>
+                <div id="routes"></div>
+                <hr style="height:2px;margin:10px;border-width:0;color:gray;background-color:gray">
+                <div id="slider-close" style='text-align:center;'>
+                    <img src="./assets/up.svg" alt="chevron up icon" width="24" height="18">
+                </div>
             </div>
         </div>
     </div>

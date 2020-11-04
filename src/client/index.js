@@ -51,6 +51,7 @@ function animateMarkers(timestamp) {
 
 function initMapEvents(map) {
   map.on("load", () => {
+    document.querySelector(".controls-overlay").style.display = "block";
     requestAnimationFrame(animateMarkers);
     // on mapDidMount add list of bus (by default) route selection buttons to the screen
     // render.currierList();
