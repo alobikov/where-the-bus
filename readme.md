@@ -17,5 +17,5 @@ Web client ended up to be rather simple. I thought the challenging part would be
 
 **Development stack of Web client:** Pure JS, Redux, Socket.io, Webpack
 
-Deployed at Digital Ocean: [www.wheremybus.info]
-Github repo: [https://github.com/alobikov/where-the-bus]www.wheremybus.info
+Deployed at Digital Ocean: www.wheremybus.info
+Github repo: https://github.com/alobikov/where-the-bus
