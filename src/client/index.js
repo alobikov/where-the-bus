@@ -102,6 +102,8 @@ function initMapEvents(map) {
       if (event.target.dataset.action === "in") map.zoomIn();
       else if (event.target.dataset.action === "out") map.zoomOut();
     });
+
+    sliderBtn.dispatchEvent(new Event("click"));
   });
 }
 
